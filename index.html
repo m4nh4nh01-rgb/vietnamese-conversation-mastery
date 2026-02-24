@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnamese Conversation Mastery</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .scenario-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .scenario-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        .tab-button {
+            transition: all 0.2s;
+        }
+        .tab-button.active {
+            border-bottom: 3px solid #4f46e5;
+            color: #4f46e5;
+        }
+        .blank-input {
+            border-bottom: 2px solid #e5e7eb;
+            transition: border-color 0.2s;
+        }
+        .blank-input:focus {
+            outline: none;
+            border-bottom-color: #4f46e5;
+        }
+        .blank-input.correct {
+            border-bottom-color: #10b981;
+            background-color: #d1fae5;
+        }
+        .blank-input.incorrect {
+            border-bottom-color: #ef4444;
+            background-color: #fee2e2;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .progress-ring {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ==================== DATA STRUCTURES ====================
+        
+        // Spaced Repetition Algorithm (SM-2)
+        class SpacedRepetition {
+            static calculateNextReview(quality, repetitions, easeFactor, interval) {
+                let newEaseFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+                if (newEaseFactor < 1.3) newEaseFactor = 1.3;
+
+                let newRepetitions = repetitions;
+                let newInterval = interval;
+
+                if (quality < 3) {
+                    newRepetitions = 0;
+                    newInterval = 1;
+                } else {
+                    newRepetitions += 1;
+                    if (newRepetitions === 1) {
+                        newInterval = 1;
+                    } else if (newRepetitions === 2) {
+                        newInterval = 6;
+                    } else {
+                        newInterval = Math.round(interval * newEaseFactor);
+                    }
+                }
+
+                const nextReviewDate = new Date();
+                nextReviewDate.setMinutes(nextReviewDate.getMinutes() + newInterval);
+
+                return {
+                    easeFactor: newEaseFactor,
+                    repetitions: newRepetitions,
+                    interval: newInterval,
+                    nextReview: nextReviewDate.toISOString()
+                };
+            }
+        }
+
+        // Storage Manager
+        class StorageManager {
+            static KEYS = {
+                PHRASES: 'viet_phrases',
+                SIMULATIONS: 'viet_simulations',
+                WEEKLY_STATS: 'viet_weekly_stats',
+                SRS_QUEUE: 'viet_srs_queue'
+            };
+
+            static getPhrases() {
+                const data = localStorage.getItem(this.KEYS.PHRASES);
+                return data ? JSON.parse(data) : {};
+            }
+
+            static savePhraseProgress(phraseId, result) {
+                const phrases = this.getPhrases();
+                const existing = phrases[phraseId] || {
+                    easeFactor: 2.5,
+                    repetitions: 0,
+                    interval: 0,
+                    nextReview: new Date().toISOString(),
+                    attempts: 0,
+                    correct: 0
+                };
+
+                const quality = result.correct ? 5 : Math.floor((result.similarity || 0) * 5);
+                const updated = SpacedRepetition.calculateNextReview(
+                    quality,
+                    existing.repetitions,
+                    existing.easeFactor,
+                    existing.interval
+                );
+
+                phrases[phraseId] = {
+                    ...updated,
+                    lastReview: new Date().toISOString(),
+                    attempts: existing.attempts + 1,
+                    correct: existing.correct + (result.correct ? 1 : 0),
+                    phrase: result.phrase,
+                    translation: result.translation,
+                    scenario: result.scenario
+                };
+
+                localStorage.setItem(this.KEYS.PHRASES, JSON.stringify(phrases));
+                return phrases[phraseId];
+            }
+
+            static saveSimulation(scenarioId, simulationData) {
+                const simulations = JSON.parse(localStorage.getItem(this.KEYS.SIMULATIONS) || '{}');
+                if (!simulations[scenarioId]) {
+                    simulations[scenarioId] = [];
+                }
+                simulations[scenarioId].push({
+                    ...simulationData,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem(this.KEYS.SIMULATIONS, JSON.stringify(simulations));
+            }
+
+            static getSimulations(scenarioId) {
+                const simulations = JSON.parse(localStorage.getItem(this.KEYS.SIMULATIONS) || '{}');
+                return simulations[scenarioId] || [];
+            }
+
+            static getWeakPhrases(limit = 10) {
+                const phrases = this.getPhrases();
+                const weak = Object.entries(phrases)
+                    .filter(([_, data]) => {
+                        const accuracy = data.attempts > 0 ? data.correct / data.attempts : 0;
+                        return accuracy < 0.7 || data.repetitions < 2;
+                    })
+                    .sort((a, b) => {
+                        const accA = a[1].attempts > 0 ? a[1].correct / a[1].attempts : 0;
+                        const accB = b[1].attempts > 0 ? b[1].correct / b[1].attempts : 0;
+                        return accA - accB;
+                    })
+                    .slice(0, limit);
+                
+                return weak.map(([id, data]) => ({ id, ...data }));
+            }
+
+            static getWeeklyStats() {
+                const data = localStorage.getItem(this.KEYS.WEEKLY_STATS);
+                if (!data) return this.initializeWeeklyStats();
+                return JSON.parse(data);
+            }
+
+            static initializeWeeklyStats() {
+                const stats = {
+                    scenariosCompleted: 0,
+                    avgResponseTime: 0,
+                    politenessAccuracy: 0,
+                    recoveryScore: 0,
+                    weekStart: new Date().toISOString()
+                };
+                localStorage.setItem(this.KEYS.WEEKLY_STATS, JSON.stringify(stats));
+                return stats;
+            }
+
+            static updateWeeklyStats(update) {
+                const stats = this.getWeeklyStats();
+                const updated = { ...stats, ...update };
+                localStorage.setItem(this.KEYS.WEEKLY_STATS, JSON.stringify(updated));
+                return updated;
+            }
+
+            static getSRSQueue() {
+                const phrases = this.getPhrases();
+                const now = new Date();
+                const due = [];
+
+                for (const [id, data] of Object.entries(phrases)) {
+                    const nextReview = new Date(data.nextReview);
+                    if (nextReview <= now) {
+                        due.push({ id, ...data });
+                    }
+                }
+
+                return due;
+            }
+        }
+
+        // Scenarios Data
+        const TRAVEL_SCENARIOS = [
+            {
+                id: 'reconnecting',
+                title: 'Gặp lại bạn cũ',
+                description: 'Reconnecting and Social Catch-Ups',
+                icon: '👋',
+                difficulty: 'intermediate',
+                objectives: ['Catch up with old friends', 'Discuss work-life changes', 'Express opinions on lifestyle choices'],
+                estimatedTime: '10 min'
+            },
+            {
+                id: 'hotel_booking',
+                title: 'Khách sạn - Đặt phòng',
+                description: 'Booking a hotel room',
+                icon: '🏨',
+                difficulty: 'intermediate',
+                objectives: ['Make reservation', 'Discuss room types', 'Handle special requests'],
+                estimatedTime: '8 min'
+            },
+            {
+                id: 'restaurant_order',
+                title: 'Nhà hàng - Gọi món',
+                description: 'Ordering food at a restaurant',
+                icon: '🍜',
+                difficulty: 'intermediate',
+                objectives: ['Order dishes politely', 'Ask about ingredients', 'Request modifications'],
+                estimatedTime: '12 min'
+            },
+            {
+                id: 'taxi_directions',
+                title: 'Taxi - Chỉ đường',
+                description: 'Giving directions to a taxi driver',
+                icon: '🚕',
+                difficulty: 'intermediate',
+                objectives: ['State destination clearly', 'Negotiate price', 'Handle route changes'],
+                estimatedTime: '7 min'
+            },
+            {
+                id: 'market_shopping',
+                title: 'Chợ - Mua sắm',
+                description: 'Shopping at a local market',
+                icon: '🛒',
+                difficulty: 'intermediate',
+                objectives: ['Bargain prices', 'Ask about products', 'Complete transactions'],
+                estimatedTime: '15 min'
+            },
+            {
+                id: 'tourist_info',
+                title: 'Du lịch - Hỏi thông tin',
+                description: 'Asking for tourist information',
+                icon: '🗺️',
+                difficulty: 'intermediate',
+                objectives: ['Request recommendations', 'Ask directions', 'Understand local customs'],
+                estimatedTime: '10 min'
+            }
+        ];
+
+        // Sample Dialogues Database
+        const SAMPLE_DIALOGUES = {
+            'reconnecting': {
+                scenario: 'Gặp lại bạn cũ',
+                context: 'Anna runs into her old friend Minh and they catch up after not seeing each other for three years.',
+                dialogue: [
+                    { speaker: 'Minh', text: 'Ủa, Anna phải không? Lâu quá không gặp!' },
+                    { speaker: 'Anna', text: 'Trời ơi, Minh! Đúng rồi, cũng phải ba năm rồi nhỉ?' },
+                    { speaker: 'Minh', text: 'Ừ, từ khi bạn chuyển công ty là mình không gặp lại. Dạo này bạn thế nào?' },
+                    { speaker: 'Anna', text: 'Mình khá bận, vì công việc mới đòi hỏi nhiều [BLANK1] hơn nên mình thường xuyên phải [BLANK2].' },
+                    { speaker: 'Minh', text: 'Nghe có vẻ áp lực đấy. Nhưng chắc bạn cũng học được nhiều thứ mới?' },
+                    { speaker: 'Anna', text: 'Đúng vậy. Mặc dù công việc [BLANK3] nhưng mình cảm thấy [BLANK4] hơn rất nhiều.' },
+                    { speaker: 'Minh', text: 'Vậy thì tốt rồi. Còn mình thì chuyển sang làm freelance, nên thời gian [BLANK5] hơn trước.' },
+                    { speaker: 'Anna', text: 'Thật à? Không những linh hoạt mà còn [BLANK6] nữa đúng không?' },
+                    { speaker: 'Minh', text: 'Ừ, tự do thì có, nhưng [BLANK7] lại không [BLANK8]. Vì không có lương cố định nên mình phải tự tìm khách hàng.' },
+                    { speaker: 'Anna', text: 'Nghe cũng khá [BLANK9]. Nhưng chắc bạn thích cảm giác [BLANK10]?' },
+                    { speaker: 'Minh', text: 'Đúng là vậy. Trước đây mình làm văn phòng suốt ngày, [BLANK11] bây giờ mình có thể làm việc ở quán cà phê hoặc ở nhà.' },
+                    { speaker: 'Anna', text: 'Mình nhớ hồi đó bạn hay than là không có thời gian cho gia đình. Bây giờ chắc [BLANK12] rồi?' },
+                    { speaker: 'Minh', text: 'Đỡ hơn nhiều. Mặc dù thu nhập giảm một chút nhưng mình có thời gian đưa con đi học và tập thể dục thường xuyên hơn.' },
+                    { speaker: 'Anna', text: 'Nghe bạn nói mình cũng [BLANK13] về cuộc sống của mình. Có lẽ mình nên [BLANK14] giữa công việc và cuộc sống tốt hơn.' },
+                    { speaker: 'Minh', text: 'Theo mình thì mỗi người có một [BLANK15] khác nhau. Quan trọng là mình cảm thấy [BLANK16] với lựa chọn của mình.' },
+                    { speaker: 'Anna', text: 'Bạn nói đúng. Dù sao thì gặp lại bạn hôm nay mình rất vui.' },
+                    { speaker: 'Minh', text: 'Mình cũng vậy. Khi nào rảnh thì mình gặp nhau lâu hơn nhé.' },
+                    { speaker: 'Anna', text: 'Nhất trí. Lần sau mình sẽ kể cho bạn nghe kỹ hơn về [BLANK17] mới của mình.' }
+                ],
+                blanks: [
+                    {
+                        id: 'blank1',
+                        answer: 'trách nhiệm',
+                        translation: 'responsibility / responsibilities',
+                        notes: '"Trách nhiệm" = responsibility. "Đòi hỏi nhiều trách nhiệm" = demands a lot of responsibility.',
+                        politeness: 'neutral',
+                        category: 'work'
+                    },
+                    {
+                        id: 'blank2',
+                        answer: 'làm thêm giờ',
+                        translation: 'to work overtime / work extra hours',
+                        notes: '"Làm thêm giờ" = to do overtime. "Thường xuyên" before it means "frequently/regularly".',
+                        politeness: 'neutral',
+                        category: 'work'
+                    },
+                    {
+                        id: 'blank3',
+                        answer: 'vất vả',
+                        translation: 'tough / tiring / demanding',
+                        notes: '"Vất vả" describes hard, exhausting work. Often used to acknowledge effort.',
+                        politeness: 'neutral',
+                        category: 'description'
+                    },
+                    {
+                        id: 'blank4',
+                        answer: 'trưởng thành',
+                        translation: 'mature / grown / developed',
+                        notes: '"Trưởng thành hơn" = more mature/grown. Used for personal development.',
+                        politeness: 'neutral',
+                        category: 'personal'
+                    },
+                    {
+                        id: 'blank5',
+                        answer: 'linh hoạt',
+                        translation: 'flexible',
+                        notes: '"Linh hoạt" = flexible. "Thời gian linh hoạt" = flexible schedule/hours.',
+                        politeness: 'neutral',
+                        category: 'lifestyle'
+                    },
+                    {
+                        id: 'blank6',
+                        answer: 'tự do',
+                        translation: 'free / freedom',
+                        notes: '"Tự do" = freedom/free. Here used as an adjective meaning "free (to do as you wish)".',
+                        politeness: 'neutral',
+                        category: 'lifestyle'
+                    },
+                    {
+                        id: 'blank7',
+                        answer: 'thu nhập',
+                        translation: 'income / earnings',
+                        notes: '"Thu nhập" = income. "Thu nhập không ổn định" = unstable income.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank8',
+                        answer: 'ổn định',
+                        translation: 'stable / steady',
+                        notes: '"Ổn định" = stable. Often paired with "thu nhập" (income) or "công việc" (job).',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank9',
+                        answer: 'rủi ro',
+                        translation: 'risky / risk',
+                        notes: '"Rủi ro" = risk. "Khá rủi ro" = quite risky. Used for financial or career risks.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank10',
+                        answer: 'tự chủ',
+                        translation: 'autonomous / self-directed / in control',
+                        notes: '"Tự chủ" = self-directed/autonomous. "Cảm giác tự chủ" = feeling of being in control.',
+                        politeness: 'neutral',
+                        category: 'personal'
+                    },
+                    {
+                        id: 'blank11',
+                        answer: 'trong khi',
+                        translation: 'while / whereas',
+                        notes: '"Trong khi" = while/whereas. Used to contrast two situations.',
+                        politeness: 'neutral',
+                        category: 'grammar'
+                    },
+                    {
+                        id: 'blank12',
+                        answer: 'đỡ hơn',
+                        translation: 'better / less difficult / more manageable',
+                        notes: '"Đỡ hơn" = improved/better (literally "less hard than before"). Very common in casual speech.',
+                        politeness: 'neutral',
+                        category: 'comparison'
+                    },
+                    {
+                        id: 'blank13',
+                        answer: 'suy nghĩ lại',
+                        translation: 'to reconsider / think again about',
+                        notes: '"Suy nghĩ lại" = to reconsider/rethink. "Về" follows to mean "about".',
+                        politeness: 'neutral',
+                        category: 'reflection'
+                    },
+                    {
+                        id: 'blank14',
+                        answer: 'cân bằng',
+                        translation: 'balance / to balance',
+                        notes: '"Cân bằng" = balance. "Cân bằng giữa A và B" = balance between A and B.',
+                        politeness: 'neutral',
+                        category: 'lifestyle'
+                    },
+                    {
+                        id: 'blank15',
+                        answer: 'ưu tiên',
+                        translation: 'priority / priorities',
+                        notes: '"Ưu tiên" = priority. "Mỗi người có một ưu tiên" = each person has different priorities.',
+                        politeness: 'neutral',
+                        category: 'values'
+                    },
+                    {
+                        id: 'blank16',
+                        answer: 'hài lòng',
+                        translation: 'satisfied / content / happy with',
+                        notes: '"Hài lòng" = satisfied/content. "Hài lòng với" = satisfied with something.',
+                        politeness: 'neutral',
+                        category: 'values'
+                    },
+                    {
+                        id: 'blank17',
+                        answer: 'dự án',
+                        translation: 'project',
+                        notes: '"Dự án" = project. Used in professional and personal contexts.',
+                        politeness: 'neutral',
+                        category: 'work'
+                    }
+                ]
+            },
+            'restaurant_order': {
+                scenario: 'Nhà hàng - Gọi món',
+                context: 'You are at a local Vietnamese restaurant ordering phở and drinks.',
+                dialogue: [
+                    { speaker: 'Phục vụ', text: 'Xin chào! [BLANK1] ạ?' },
+                    { speaker: 'Bạn', text: 'Chào chị. [BLANK2] và một ly nước chanh.' },
+                    { speaker: 'Phục vụ', text: 'Vâng ạ. Phở bò hay phở gà ạ?' },
+                    { speaker: 'Bạn', text: '[BLANK3].' },
+                    { speaker: 'Phục vụ', text: 'Dạ. Bạn ăn cay không ạ?' },
+                    { speaker: 'Bạn', text: '[BLANK4].' },
+                    { speaker: 'Phục vụ', text: 'Vâng ạ. Món sẽ có trong 10 phút nữa nhé!' },
+                    { speaker: 'Bạn', text: '[BLANK5]!' }
+                ],
+                blanks: [
+                    {
+                        id: 'blank1',
+                        answer: 'Bạn dùng gì',
+                        translation: 'What would you like?',
+                        notes: 'Common way servers ask what you want to order. "Dùng" = to use/have/eat',
+                        politeness: 'polite',
+                        category: 'greeting'
+                    },
+                    {
+                        id: 'blank2',
+                        answer: 'Cho tôi một tô phở',
+                        translation: 'Give me one bowl of phở',
+                        notes: '"Cho tôi" = give me, "một tô" = one bowl. Very common ordering phrase',
+                        politeness: 'neutral',
+                        category: 'ordering'
+                    },
+                    {
+                        id: 'blank3',
+                        answer: 'Phở bò ạ',
+                        translation: 'Beef phở',
+                        notes: '"Phở bò" = beef phở, "phở gà" = chicken phở. "Ạ" adds politeness',
+                        politeness: 'polite',
+                        category: 'responding'
+                    },
+                    {
+                        id: 'blank4',
+                        answer: 'Không cay nhé',
+                        translation: 'Not spicy please',
+                        notes: '"Cay" = spicy. "Nhé" is a soft request particle. Add "một chút" for "a little spicy"',
+                        politeness: 'polite',
+                        category: 'preference'
+                    },
+                    {
+                        id: 'blank5',
+                        answer: 'Cảm ơn chị',
+                        translation: 'Thank you',
+                        notes: '"Chị" when thanking a woman, "anh" for a man. Shows respect to service staff',
+                        politeness: 'polite',
+                        category: 'gratitude'
+                    }
+                ]
+            },
+            'taxi_directions': {
+                scenario: 'Taxi - Chỉ đường',
+                context: 'You are taking a taxi from your hotel to Ben Thanh Market.',
+                dialogue: [
+                    { speaker: 'Tài xế', text: 'Chào bạn! [BLANK1]?' },
+                    { speaker: 'Bạn', text: '[BLANK2] Bến Thành.' },
+                    { speaker: 'Tài xế', text: 'Được rồi. Bến Thành Market phải không?' },
+                    { speaker: 'Bạn', text: 'Vâng, đúng rồi. [BLANK3]?' },
+                    { speaker: 'Tài xế', text: 'Khoảng 20 phút thôi, nếu đường không đông.' },
+                    { speaker: 'Bạn', text: '[BLANK4] nhé!' },
+                    { speaker: 'Tài xế', text: 'Dạ không sao. Tôi đi đường tắt cho bạn.' },
+                    { speaker: 'Bạn', text: 'Đến rồi ạ. [BLANK5]?' }
+                ],
+                blanks: [
+                    {
+                        id: 'blank1',
+                        answer: 'Bạn đi đâu',
+                        translation: 'Where are you going?',
+                        notes: 'Standard taxi greeting. "Đi đâu" = go where',
+                        politeness: 'neutral',
+                        category: 'greeting'
+                    },
+                    {
+                        id: 'blank2',
+                        answer: 'Cho tôi đến chợ',
+                        translation: 'Take me to the market',
+                        notes: '"Cho tôi đến" = take me to. "Chợ" = market. Common with taxi/directions',
+                        politeness: 'neutral',
+                        category: 'request'
+                    },
+                    {
+                        id: 'blank3',
+                        answer: 'Mất bao lâu',
+                        translation: 'How long does it take?',
+                        notes: '"Mất" = to take/lose, "bao lâu" = how long. Essential travel phrase',
+                        politeness: 'neutral',
+                        category: 'inquiry'
+                    },
+                    {
+                        id: 'blank4',
+                        answer: 'Đi nhanh một chút',
+                        translation: 'Go a bit faster/hurry please',
+                        notes: '"Nhanh" = fast, "một chút" = a little. Use when in a hurry but stay polite',
+                        politeness: 'polite',
+                        category: 'request'
+                    },
+                    {
+                        id: 'blank5',
+                        answer: 'Bao nhiêu tiền',
+                        translation: 'How much money?',
+                        notes: 'Essential phrase for asking prices. "Bao nhiêu" = how much, "tiền" = money',
+                        politeness: 'neutral',
+                        category: 'transaction'
+                    }
+                ]
+            },
+            'airport_checkin': {
+                scenario: 'Sân bay - Làm thủ tục',
+                context: 'You are checking in at Tan Son Nhat Airport in Ho Chi Minh City for a domestic flight to Da Nang.',
+                dialogue: [
+                    { speaker: 'Nhân viên', text: 'Xin chào! [BLANK1] ạ?' },
+                    { speaker: 'Bạn', text: 'Chào chị. [BLANK2] đến Đà Nẵng.' },
+                    { speaker: 'Nhân viên', text: 'Vâng ạ. Cho tôi xem hộ chiếu và vé của bạn nhé.' },
+                    { speaker: 'Bạn', text: 'Dạ, đây ạ. [BLANK3] được không ạ?' },
+                    { speaker: 'Nhân viên', text: 'Được ạ. Bạn có hành lý ký gửi không?' },
+                    { speaker: 'Bạn', text: 'Có ạ. [BLANK4].' },
+                    { speaker: 'Nhân viên', text: 'Vâng. Đây là thẻ lên máy bay của bạn. Cửa lên máy bay số 12. [BLANK5] nhé!' },
+                    { speaker: 'Bạn', text: 'Cảm ơn chị!' }
+                ],
+                blanks: [
+                    {
+                        id: 'blank1',
+                        answer: 'Bạn đi chuyến bay nào',
+                        translation: 'Which flight are you taking?',
+                        notes: 'Polite way to ask about flight information. "Chuyến bay" means "flight".',
+                        politeness: 'polite',
+                        category: 'greeting'
+                    },
+                    {
+                        id: 'blank2',
+                        answer: 'Tôi có vé',
+                        translation: 'I have a ticket',
+                        notes: 'Standard phrase when presenting your ticket at check-in.',
+                        politeness: 'neutral',
+                        category: 'statement'
+                    },
+                    {
+                        id: 'blank3',
+                        answer: 'Tôi muốn chọn chỗ ngồi cạnh cửa sổ',
+                        translation: 'I would like to choose a window seat',
+                        notes: '"Chỗ ngồi" = seat, "cạnh cửa sổ" = by the window, "lối đi" = aisle',
+                        politeness: 'polite',
+                        category: 'request'
+                    },
+                    {
+                        id: 'blank4',
+                        answer: 'Tôi có một va li',
+                        translation: 'I have one suitcase',
+                        notes: '"Va li" or "hành lý" both mean luggage/suitcase',
+                        politeness: 'neutral',
+                        category: 'statement'
+                    },
+                    {
+                        id: 'blank5',
+                        answer: 'Chúc bạn có chuyến bay tốt đẹp',
+                        translation: 'Have a good flight',
+                        notes: 'Common farewell at airports. "Tốt đẹp" means good/pleasant',
+                        politeness: 'polite',
+                        category: 'farewell'
+                    }
+                ]
+            }
+        };
+
+        // ==================== MAIN APP ====================
+        
+        function App() {
+            const [currentScreen, setCurrentScreen] = useState('home');
+            const [selectedScenario, setSelectedScenario] = useState(null);
+            const [weeklyStats, setWeeklyStats] = useState(StorageManager.getWeeklyStats());
+
+            useEffect(() => {
+                setWeeklyStats(StorageManager.getWeeklyStats());
+            }, [currentScreen]);
+
+            const handleSelectScenario = (scenario) => {
+                setSelectedScenario(scenario);
+                setCurrentScreen('scenario');
+            };
+
+            const handleBackToHome = () => {
+                setCurrentScreen('home');
+                setSelectedScenario(null);
+            };
+
+            const handleGoToReview = () => {
+                setCurrentScreen('review');
+            };
+
+            const handleGoToDashboard = () => {
+                setCurrentScreen('dashboard');
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+                    {/* Navigation Header */}
+                    <header className="bg-white shadow-sm sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-3xl">🇻🇳</span>
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-gray-900">
+                                            Vietnamese Mastery
+                                        </h1>
+                                        <p className="text-sm text-gray-600">Simulate • Analyze • Train</p>
+                                    </div>
+                                </div>
+                                <nav className="flex items-center space-x-4">
+                                    <button
+                                        onClick={() => setCurrentScreen('home')}
+                                        className={`px-4 py-2 rounded-lg font-medium transition ${
+                                            currentScreen === 'home' 
+                                                ? 'bg-indigo-600 text-white' 
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        Home
+                                    </button>
+                                    <button
+                                        onClick={handleGoToReview}
+                                        className={`px-4 py-2 rounded-lg font-medium transition ${
+                                            currentScreen === 'review' 
+                                                ? 'bg-indigo-600 text-white' 
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        Review
+                                    </button>
+                                    <button
+                                        onClick={handleGoToDashboard}
+                                        className={`px-4 py-2 rounded-lg font-medium transition ${
+                                            currentScreen === 'dashboard' 
+                                                ? 'bg-indigo-600 text-white' 
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        Dashboard
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        {currentScreen === 'home' && (
+                            <HomePage scenarios={TRAVEL_SCENARIOS} onSelectScenario={handleSelectScenario} />
+                        )}
+                        {currentScreen === 'scenario' && selectedScenario && (
+                            <ScenarioPage scenario={selectedScenario} onBack={handleBackToHome} />
+                        )}
+                        {currentScreen === 'review' && (
+                            <ReviewPage onBack={handleBackToHome} />
+                        )}
+                        {currentScreen === 'dashboard' && (
+                            <DashboardPage stats={weeklyStats} onBack={handleBackToHome} />
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // ==================== HOME PAGE ====================
+        
+        function HomePage({ scenarios, onSelectScenario }) {
+            const srsQueue = StorageManager.getSRSQueue();
+            const phrases = StorageManager.getPhrases();
+            const totalPhrases = Object.keys(phrases).length;
+            const mastered = Object.values(phrases).filter(p => p.repetitions >= 3).length;
+
+            return (
+                <div>
+                    {/* Quick Stats Banner */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <p className="text-indigo-200 text-sm font-medium mb-1">Due for Review</p>
+                                <p className="text-4xl font-bold">{srsQueue.length}</p>
+                                <p className="text-indigo-100 text-sm mt-1">phrases ready to practice</p>
+                            </div>
+                            <div>
+                                <p className="text-indigo-200 text-sm font-medium mb-1">Total Progress</p>
+                                <p className="text-4xl font-bold">{totalPhrases}</p>
+                                <p className="text-indigo-100 text-sm mt-1">phrases learned</p>
+                            </div>
+                            <div>
+                                <p className="text-indigo-200 text-sm font-medium mb-1">Mastery</p>
+                                <p className="text-4xl font-bold">{mastered}</p>
+                                <p className="text-indigo-100 text-sm mt-1">phrases mastered</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Scenario Grid */}
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-6">Choose Your Scenario</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {scenarios.map(scenario => (
+                                <div
+                                    key={scenario.id}
+                                    className="scenario-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-indigo-500"
+                                    onClick={() => onSelectScenario(scenario)}
+                                >
+                                    <div className="p-6">
+                                        <div className="text-5xl mb-4">{scenario.icon}</div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                            {scenario.title}
+                                        </h3>
+                                        <p className="text-gray-600 mb-4">{scenario.description}</p>
+                                        
+                                        {/* Objectives */}
+                                        <div className="mb-4">
+                                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Learning Objectives</p>
+                                            <ul className="space-y-1">
+                                                {scenario.objectives.map((obj, idx) => (
+                                                    <li key={idx} className="text-sm text-gray-700 flex items-start">
+                                                        <span className="text-green-500 mr-2">✓</span>
+                                                        {obj}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        {/* Tags */}
+                                        <div className="flex items-center justify-between">
+                                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                                                {scenario.difficulty}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                ⏱️ {scenario.estimatedTime}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== SCENARIO PAGE ====================
+        
+        function ScenarioPage({ scenario, onBack }) {
+            const [activeTab, setActiveTab] = useState('simulate');
+            const [simulationComplete, setSimulationComplete] = useState(false);
+            const [simulationResults, setSimulationResults] = useState(null);
+
+            const handleSimulationComplete = (results) => {
+                setSimulationComplete(true);
+                setSimulationResults(results);
+                StorageManager.saveSimulation(scenario.id, results);
+            };
+
+            return (
+                <div>
+                    {/* Scenario Header */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <span className="text-5xl">{scenario.icon}</span>
+                                <div>
+                                    <h2 className="text-3xl font-bold text-gray-900">{scenario.title}</h2>
+                                    <p className="text-gray-600">{scenario.description}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={onBack}
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
+                            >
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="bg-white rounded-xl shadow-lg mb-6">
+                        <div className="border-b border-gray-200">
+                            <nav className="flex">
+                                <button
+                                    onClick={() => setActiveTab('simulate')}
+                                    className={`tab-button px-8 py-4 font-semibold ${
+                                        activeTab === 'simulate' ? 'active' : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                >
+                                    🎭 SIMULATE
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('analyze')}
+                                    disabled={!simulationComplete}
+                                    className={`tab-button px-8 py-4 font-semibold ${
+                                        activeTab === 'analyze' 
+                                            ? 'active' 
+                                            : simulationComplete 
+                                                ? 'text-gray-600 hover:text-gray-900' 
+                                                : 'text-gray-400 cursor-not-allowed'
+                                    }`}
+                                >
+                                    📊 ANALYZE
+                                    {simulationComplete && <span className="ml-2 text-green-500">✓</span>}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('train')}
+                                    className={`tab-button px-8 py-4 font-semibold ${
+                                        activeTab === 'train' ? 'active' : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                >
+                                    💪 TRAIN
+                                </button>
+                            </nav>
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="p-8">
+                            {activeTab === 'simulate' && (
+                                <SimulateTab 
+                                    scenario={scenario} 
+                                    onComplete={handleSimulationComplete}
+                                />
+                            )}
+                            {activeTab === 'analyze' && simulationResults && (
+                                <AnalyzeTab 
+                                    scenario={scenario}
+                                    results={simulationResults}
+                                />
+                            )}
+                            {activeTab === 'train' && (
+                                <TrainTab scenario={scenario} />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== SIMULATE TAB ====================
+        
+        function SimulateTab({ scenario, onComplete }) {
+            const [dialogue, setDialogue] = useState(null);
+            const [userAnswers, setUserAnswers] = useState({});
+            const [submitted, setSubmitted] = useState(false);
+            const [startTime, setStartTime] = useState(null);
+            const [responseTimes, setResponseTimes] = useState({});
+            const [stage, setStage] = useState('learn'); // 'learn', 'practice', 'test'
+            const [currentBlankIndex, setCurrentBlankIndex] = useState(0);
+            const inputRefs = useRef({});
+
+            useEffect(() => {
+                // Load dialogue
+                const dialogueData = SAMPLE_DIALOGUES[scenario.id] || SAMPLE_DIALOGUES['restaurant_order'];
+                setDialogue(dialogueData);
+                setStartTime(Date.now());
+            }, [scenario.id]);
+
+            const handleAnswerChange = (blankId, value) => {
+                if (!responseTimes[blankId]) {
+                    setResponseTimes(prev => ({
+                        ...prev,
+                        [blankId]: Date.now() - startTime
+                    }));
+                }
+                setUserAnswers(prev => ({
+                    ...prev,
+                    [blankId]: value
+                }));
+            };
+
+            const normalizeVietnamese = (text) => {
+                return text.toLowerCase().trim().replace(/\s+/g, ' ');
+            };
+
+            const calculateSimilarity = (answer, correct) => {
+                const a = normalizeVietnamese(answer);
+                const c = normalizeVietnamese(correct);
+                
+                if (a === c) return 1.0;
+                
+                const aWords = a.split(' ');
+                const cWords = c.split(' ');
+                const matches = aWords.filter(word => cWords.includes(word)).length;
+                
+                return matches / Math.max(aWords.length, cWords.length);
+            };
+
+            const handleSubmit = () => {
+                if (!dialogue) return;
+
+                let totalCorrect = 0;
+                let totalPolite = 0;
+                let politeCorrect = 0;
+                const blankResults = [];
+
+                dialogue.blanks.forEach(blank => {
+                    const userAnswer = userAnswers[blank.id] || '';
+                    const similarity = calculateSimilarity(userAnswer, blank.answer);
+                    const correct = similarity >= 0.8;
+
+                    if (correct) totalCorrect++;
+                    if (blank.politeness === 'polite') {
+                        totalPolite++;
+                        if (correct) politeCorrect++;
+                    }
+
+                    blankResults.push({
+                        blankId: blank.id,
+                        correct,
+                        similarity,
+                        responseTime: responseTimes[blank.id] || 0
+                    });
+
+                    StorageManager.savePhraseProgress(
+                        `${scenario.id}_${blank.id}`,
+                        {
+                            correct,
+                            similarity,
+                            phrase: blank.answer,
+                            translation: blank.translation,
+                            scenario: scenario.id
+                        }
+                    );
+                });
+
+                const avgResponseTime = Object.values(responseTimes).reduce((a, b) => a + b, 0) / Object.keys(responseTimes).length;
+                const politenessAccuracy = totalPolite > 0 ? (politeCorrect / totalPolite) * 100 : 0;
+                const overallAccuracy = (totalCorrect / dialogue.blanks.length) * 100;
+
+                const results = {
+                    accuracy: overallAccuracy,
+                    avgResponseTime: Math.round(avgResponseTime / 1000),
+                    politenessAccuracy: Math.round(politenessAccuracy),
+                    blanks: blankResults
+                };
+
+                // Update weekly stats
+                const currentStats = StorageManager.getWeeklyStats();
+                StorageManager.updateWeeklyStats({
+                    scenariosCompleted: currentStats.scenariosCompleted + 1,
+                    avgResponseTime: Math.round((currentStats.avgResponseTime + results.avgResponseTime) / 2),
+                    politenessAccuracy: Math.round((currentStats.politenessAccuracy + results.politenessAccuracy) / 2)
+                });
+
+                setSubmitted(true);
+                onComplete(results);
+            };
+
+            const handleNextStage = () => {
+                if (stage === 'learn') {
+                    setStage('practice');
+                    setCurrentBlankIndex(0);
+                    setUserAnswers({});
+                } else if (stage === 'practice') {
+                    setStage('test');
+                    setUserAnswers({});
+                    setStartTime(Date.now());
+                }
+            };
+
+            const handlePracticeAnswer = (blankId, selectedAnswer, correctAnswer) => {
+                const correct = normalizeVietnamese(selectedAnswer) === normalizeVietnamese(correctAnswer);
+                
+                setUserAnswers(prev => ({
+                    ...prev,
+                    [blankId]: selectedAnswer
+                }));
+
+                // Auto-advance after selection
+                setTimeout(() => {
+                    if (currentBlankIndex < dialogue.blanks.length - 1) {
+                        setCurrentBlankIndex(prev => prev + 1);
+                    }
+                }, 1500);
+            };
+
+            if (!dialogue) {
+                return <div className="text-center py-12">Loading dialogue...</div>;
+            }
+
+            // STAGE 1: LEARN - Show full dialogue with all answers
+            if (stage === 'learn') {
+                return (
+                    <div>
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900">📚 Stage 1: Learn</h3>
+                                    <p className="text-gray-600">Read through the complete conversation and learn the key phrases</p>
+                                </div>
+                                <div className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold">
+                                    Step 1 of 3
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+                            <p className="text-lg text-gray-700 mb-2">
+                                <strong>Context:</strong> {dialogue.context}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                💡 Pay attention to the <strong className="text-indigo-600">highlighted phrases</strong> - you'll practice these next!
+                            </p>
+                        </div>
+
+                        {/* Full Dialogue with Highlights */}
+                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
+                            <h4 className="text-lg font-bold text-gray-900 mb-6">Complete Conversation</h4>
+                            <div className="space-y-4">
+                                {dialogue.dialogue.map((line, index) => {
+                                    const parts = line.text.split(/(\[BLANK\d+\])/g);
+                                    
+                                    return (
+                                        <div key={index} className="flex items-start space-x-3">
+                                            <div className="flex-shrink-0 w-28">
+                                                <span className={`text-sm font-semibold ${
+                                                    line.speaker === 'Bạn' ? 'text-indigo-600' : 'text-gray-700'
+                                                }`}>
+                                                    {line.speaker}:
+                                                </span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-lg leading-relaxed">
+                                                    {parts.map((part, i) => {
+                                                        const blankMatch = part.match(/\[BLANK(\d+)\]/);
+                                                        if (blankMatch) {
+                                                            const blankNum = blankMatch[1];
+                                                            const blankId = `blank${blankNum}`;
+                                                            const blank = dialogue.blanks.find(b => b.id === blankId);
+                                                            
+                                                            if (!blank) return null;
+
+                                                            return (
+                                                                <span key={i} className="inline">
+                                                                    <strong className="text-indigo-600 bg-indigo-100 px-2 py-1 rounded">
+                                                                        {blank.answer}
+                                                                    </strong>
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return <span key={i}>{part}</span>;
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Key Phrases Reference */}
+                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
+                            <h4 className="text-lg font-bold text-gray-900 mb-4">🎯 Key Phrases to Remember</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {dialogue.blanks.map((blank, index) => (
+                                    <div key={blank.id} className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <span className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                {index + 1}
+                                            </span>
+                                            <span className="px-2 py-1 bg-purple-200 text-purple-700 rounded text-xs font-semibold">
+                                                {blank.category}
+                                            </span>
+                                        </div>
+                                        <p className="text-lg font-bold text-indigo-900 mb-1">{blank.answer}</p>
+                                        <p className="text-sm text-gray-700 mb-2">
+                                            <strong>Meaning:</strong> {blank.translation}
+                                        </p>
+                                        <p className="text-xs text-gray-600">{blank.notes}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleNextStage}
+                                className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center space-x-2"
+                            >
+                                <span>I've learned these phrases</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // STAGE 2: PRACTICE - Multiple choice for each phrase
+            if (stage === 'practice') {
+                const currentBlank = dialogue.blanks[currentBlankIndex];
+                const userAnswer = userAnswers[currentBlank.id];
+                const hasAnswered = userAnswer !== undefined;
+                const isCorrect = hasAnswered && normalizeVietnamese(userAnswer) === normalizeVietnamese(currentBlank.answer);
+
+                // Generate wrong answers (simplified - in production, use more sophisticated distractors)
+                const generateChoices = (correctAnswer) => {
+                    const otherBlanks = dialogue.blanks.filter(b => b.id !== currentBlank.id);
+                    const choices = [correctAnswer];
+                    
+                    // Add 2-3 wrong answers from other blanks
+                    for (let i = 0; i < Math.min(2, otherBlanks.length); i++) {
+                        choices.push(otherBlanks[i].answer);
+                    }
+                    
+                    // Shuffle
+                    return choices.sort(() => Math.random() - 0.5);
+                };
+
+                const choices = generateChoices(currentBlank.answer);
+                const allPracticeComplete = currentBlankIndex === dialogue.blanks.length - 1 && hasAnswered;
+
+                return (
+                    <div>
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900">✏️ Stage 2: Practice</h3>
+                                    <p className="text-gray-600">Choose the correct Vietnamese phrase for each situation</p>
+                                </div>
+                                <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
+                                    Step 2 of 3
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                        style={{ width: `${((currentBlankIndex + (hasAnswered ? 1 : 0)) / dialogue.blanks.length) * 100}%` }}
+                                    />
+                                </div>
+                                <span className="text-sm font-medium text-gray-600">
+                                    {currentBlankIndex + 1} / {dialogue.blanks.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Question Card */}
+                        <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
+                            {/* Category Badge */}
+                            <div className="mb-4">
+                                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                    {currentBlank.category}
+                                </span>
+                            </div>
+
+                            {/* Question */}
+                            <div className="mb-6">
+                                <p className="text-gray-600 text-sm mb-2">How do you say in Vietnamese?</p>
+                                <p className="text-3xl font-bold text-gray-900 mb-4">{currentBlank.translation}</p>
+                                {currentBlank.politeness === 'polite' && (
+                                    <p className="text-sm text-indigo-600 bg-indigo-50 inline-block px-3 py-1 rounded">
+                                        💡 Remember to use polite form
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Multiple Choice Options */}
+                            <div className="space-y-3">
+                                {choices.map((choice, idx) => {
+                                    const isSelected = userAnswer === choice;
+                                    const isCorrectChoice = normalizeVietnamese(choice) === normalizeVietnamese(currentBlank.answer);
+                                    
+                                    let buttonStyle = 'bg-gray-50 border-2 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50';
+                                    if (hasAnswered) {
+                                        if (isCorrectChoice) {
+                                            buttonStyle = 'bg-green-100 border-2 border-green-500';
+                                        } else if (isSelected) {
+                                            buttonStyle = 'bg-red-100 border-2 border-red-500';
+                                        } else {
+                                            buttonStyle = 'bg-gray-100 border-2 border-gray-300 opacity-50';
+                                        }
+                                    }
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => !hasAnswered && handlePracticeAnswer(currentBlank.id, choice, currentBlank.answer)}
+                                            disabled={hasAnswered}
+                                            className={`w-full p-4 rounded-lg text-left transition ${buttonStyle} ${
+                                                hasAnswered ? 'cursor-default' : 'cursor-pointer'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-lg font-medium">{choice}</span>
+                                                {hasAnswered && isCorrectChoice && (
+                                                    <span className="text-2xl">✅</span>
+                                                )}
+                                                {hasAnswered && isSelected && !isCorrectChoice && (
+                                                    <span className="text-2xl">❌</span>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Explanation after answering */}
+                            {hasAnswered && (
+                                <div className={`mt-6 p-4 rounded-lg ${
+                                    isCorrect ? 'bg-green-50 border-2 border-green-200' : 'bg-orange-50 border-2 border-orange-200'
+                                }`}>
+                                    <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
+                                        {isCorrect ? '🎉 Correct!' : '📚 Keep practicing!'}
+                                    </p>
+                                    <p className="text-gray-700 text-sm mb-1">
+                                        <strong>Notes:</strong> {currentBlank.notes}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="flex justify-between">
+                            {currentBlankIndex > 0 && (
+                                <button
+                                    onClick={() => setCurrentBlankIndex(prev => prev - 1)}
+                                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                                >
+                                    ← Previous
+                                </button>
+                            )}
+                            <div className="flex-1"></div>
+                            {hasAnswered && !allPracticeComplete && (
+                                <button
+                                    onClick={() => setCurrentBlankIndex(prev => prev + 1)}
+                                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                                >
+                                    Next →
+                                </button>
+                            )}
+                            {allPracticeComplete && (
+                                <button
+                                    onClick={handleNextStage}
+                                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                >
+                                    Ready for the Test →
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            // STAGE 3: TEST - Fill in the blanks (original implementation)
+
+            // STAGE 3: TEST - Fill in the blanks
+            const renderDialogueLine = (line, index) => {
+                const parts = line.text.split(/(\[BLANK\d+\])/g);
+                
+                return (
+                    <div key={index} className="mb-4 animate-slide-in">
+                        <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 w-28">
+                                <span className={`text-sm font-semibold ${
+                                    line.speaker === 'Bạn' ? 'text-indigo-600' : 'text-gray-700'
+                                }`}>
+                                    {line.speaker}:
+                                </span>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-lg leading-relaxed">
+                                    {parts.map((part, i) => {
+                                        const blankMatch = part.match(/\[BLANK(\d+)\]/);
+                                        if (blankMatch) {
+                                            const blankNum = blankMatch[1];
+                                            const blankId = `blank${blankNum}`;
+                                            const blank = dialogue.blanks.find(b => b.id === blankId);
+                                            
+                                            if (!blank) return null;
+
+                                            const userAnswer = userAnswers[blankId] || '';
+                                            const similarity = submitted ? calculateSimilarity(userAnswer, blank.answer) : 0;
+                                            const isCorrect = similarity >= 0.8;
+
+                                            return (
+                                                <span key={i} className="inline-block mx-1">
+                                                    <input
+                                                        ref={el => inputRefs.current[blankId] = el}
+                                                        type="text"
+                                                        value={userAnswer}
+                                                        onChange={(e) => handleAnswerChange(blankId, e.target.value)}
+                                                        disabled={submitted}
+                                                        className={`blank-input px-3 py-1 min-w-[200px] rounded ${
+                                                            submitted 
+                                                                ? isCorrect 
+                                                                    ? 'correct' 
+                                                                    : 'incorrect'
+                                                                : ''
+                                                        }`}
+                                                        placeholder="..."
+                                                    />
+                                                    {submitted && !isCorrect && (
+                                                        <div className="inline-block ml-2 text-green-600 font-medium">
+                                                            ✓ {blank.answer}
+                                                        </div>
+                                                    )}
+                                                </span>
+                                            );
+                                        }
+                                        return <span key={i}>{part}</span>;
+                                    })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            if (!dialogue) {
+                return <div className="text-center py-12">Loading dialogue...</div>;
+            }
+
+            const allFilled = dialogue.blanks.every(blank => userAnswers[blank.id]?.trim());
+
+            // STAGE 3: TEST - Fill in the blanks
+            return (
+                <div>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">🎯 Stage 3: Test</h3>
+                                <p className="text-gray-600">Now fill in the blanks from memory - you've got this!</p>
+                            </div>
+                            <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
+                                Final Step
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 mb-6">
+                        <p className="text-lg text-gray-700 mb-2">
+                            <strong>Context:</strong> {dialogue.context}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                            💡 Type the Vietnamese phrases you learned. Don't worry about perfect spelling - we check for meaning!
+                        </p>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
+                        <div className="space-y-2">
+                            {dialogue.dialogue.map((line, index) => renderDialogueLine(line, index))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t pt-6">
+                        <button
+                            onClick={() => setStage('practice')}
+                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                        >
+                            ← Review Practice
+                        </button>
+                        <div>
+                            {submitted && (
+                                <p className="text-sm text-green-600 mr-4 inline-block">
+                                    ✓ Responses recorded for spaced repetition!
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            {!submitted ? (
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!allFilled}
+                                    className={`px-8 py-3 rounded-lg font-semibold transition ${
+                                        allFilled
+                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Submit Test
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setStage('learn');
+                                        setUserAnswers({});
+                                        setSubmitted(false);
+                                        setCurrentBlankIndex(0);
+                                        setStartTime(Date.now());
+                                    }}
+                                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                >
+                                    Practice Again
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== ANALYZE TAB ====================
+        
+        function AnalyzeTab({ scenario, results }) {
+            const dialogue = SAMPLE_DIALOGUES[scenario.id] || SAMPLE_DIALOGUES['restaurant_order'];
+
+            const getGrade = (accuracy) => {
+                if (accuracy >= 90) return { grade: 'A', color: 'text-green-600', bg: 'bg-green-100' };
+                if (accuracy >= 80) return { grade: 'B', color: 'text-blue-600', bg: 'bg-blue-100' };
+                if (accuracy >= 70) return { grade: 'C', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+                return { grade: 'D', color: 'text-red-600', bg: 'bg-red-100' };
+            };
+
+            const accuracyGrade = getGrade(results.accuracy);
+
+            return (
+                <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Performance Analysis</h3>
+
+                    {/* Metrics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+                            <p className="text-green-100 text-sm font-medium mb-2">Overall Accuracy</p>
+                            <p className="text-5xl font-bold">{Math.round(results.accuracy)}%</p>
+                            <p className={`mt-2 px-3 py-1 inline-block rounded-full text-sm font-bold ${accuracyGrade.bg} ${accuracyGrade.color}`}>
+                                Grade: {accuracyGrade.grade}
+                            </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                            <p className="text-blue-100 text-sm font-medium mb-2">Avg Response Time</p>
+                            <p className="text-5xl font-bold">{results.avgResponseTime}s</p>
+                            <p className="text-blue-100 text-sm mt-2">per phrase</p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                            <p className="text-purple-100 text-sm font-medium mb-2">Politeness Accuracy</p>
+                            <p className="text-5xl font-bold">{results.politenessAccuracy}%</p>
+                            <p className="text-purple-100 text-sm mt-2">formal expressions</p>
+                        </div>
+                    </div>
+
+                    {/* Detailed Breakdown */}
+                    <div className="bg-white rounded-xl border-2 border-gray-200 p-6">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">Phrase-by-Phrase Breakdown</h4>
+                        <div className="space-y-4">
+                            {dialogue.blanks.map((blank, index) => {
+                                const result = results.blanks.find(b => b.blankId === blank.id);
+                                const isCorrect = result?.correct || false;
+                                const responseTime = result?.responseTime || 0;
+
+                                return (
+                                    <div key={blank.id} className={`p-4 rounded-lg border-2 ${
+                                        isCorrect ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'
+                                    }`}>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-2 mb-2">
+                                                    <span className="text-2xl">{isCorrect ? '✅' : '❌'}</span>
+                                                    <span className="font-semibold text-gray-900">Phrase {index + 1}</span>
+                                                    <span className="px-2 py-1 bg-gray-200 rounded text-xs font-medium text-gray-700">
+                                                        {blank.category}
+                                                    </span>
+                                                    {blank.politeness === 'polite' && (
+                                                        <span className="px-2 py-1 bg-purple-200 rounded text-xs font-medium text-purple-700">
+                                                            polite form
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-lg font-medium text-indigo-600 mb-1">{blank.answer}</p>
+                                                <p className="text-gray-700 mb-1">
+                                                    <span className="font-medium">Translation:</span> {blank.translation}
+                                                </p>
+                                                <p className="text-sm text-gray-600">{blank.notes}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm text-gray-500">Response Time</p>
+                                                <p className="text-xl font-bold text-gray-900">{Math.round(responseTime / 1000)}s</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="mt-6 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6">
+                        <h4 className="text-lg font-bold text-indigo-900 mb-3">💡 Recommendations</h4>
+                        <ul className="space-y-2">
+                            {results.accuracy < 80 && (
+                                <li className="text-indigo-800">• Focus on reviewing phrases you missed in the TRAIN tab</li>
+                            )}
+                            {results.avgResponseTime > 10 && (
+                                <li className="text-indigo-800">• Practice these phrases more to improve fluency and recall speed</li>
+                            )}
+                            {results.politenessAccuracy < 90 && (
+                                <li className="text-indigo-800">• Pay special attention to polite forms (ạ, chị, anh) in formal contexts</li>
+                            )}
+                            <li className="text-indigo-800">• Try the scenario again to improve your score!</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== TRAIN TAB ====================
+        
+        function TrainTab({ scenario }) {
+            const dialogue = SAMPLE_DIALOGUES[scenario.id] || SAMPLE_DIALOGUES['restaurant_order'];
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [queue, setQueue] = useState([]);
+
+            useEffect(() => {
+                // Build SRS queue for this scenario
+                const scenarioPhrases = dialogue.blanks.map(blank => ({
+                    ...blank,
+                    phraseId: `${scenario.id}_${blank.id}`
+                }));
+                
+                // Prioritize phrases user has struggled with
+                const phraseProgress = StorageManager.getPhrases();
+                const sortedQueue = scenarioPhrases.sort((a, b) => {
+                    const progressA = phraseProgress[a.phraseId];
+                    const progressB = phraseProgress[b.phraseId];
+                    
+                    const accuracyA = progressA ? (progressA.correct / progressA.attempts) : 0;
+                    const accuracyB = progressB ? (progressB.correct / progressB.attempts) : 0;
+                    
+                    return accuracyA - accuracyB;
+                });
+
+                setQueue(sortedQueue);
+            }, [scenario.id]);
+
+            const handleCheckAnswer = () => {
+                setShowAnswer(true);
+            };
+
+            const handleNext = (quality) => {
+                const currentPhrase = queue[currentIndex];
+                const similarity = calculateSimilarity(userAnswer, currentPhrase.answer);
+                const correct = similarity >= 0.8;
+
+                StorageManager.savePhraseProgress(currentPhrase.phraseId, {
+                    correct,
+                    similarity,
+                    phrase: currentPhrase.answer,
+                    translation: currentPhrase.translation,
+                    scenario: scenario.id
+                });
+
+                setUserAnswer('');
+                setShowAnswer(false);
+                setCurrentIndex((prev) => (prev + 1) % queue.length);
+            };
+
+            const calculateSimilarity = (answer, correct) => {
+                const a = answer.toLowerCase().trim().replace(/\s+/g, ' ');
+                const c = correct.toLowerCase().trim().replace(/\s+/g, ' ');
+                
+                if (a === c) return 1.0;
+                
+                const aWords = a.split(' ');
+                const cWords = c.split(' ');
+                const matches = aWords.filter(word => cWords.includes(word)).length;
+                
+                return matches / Math.max(aWords.length, cWords.length);
+            };
+
+            if (queue.length === 0) {
+                return <div className="text-center py-12">Loading training queue...</div>;
+            }
+
+            const currentPhrase = queue[currentIndex];
+            const phraseProgress = StorageManager.getPhrases()[currentPhrase.phraseId];
+            const accuracy = phraseProgress ? (phraseProgress.correct / phraseProgress.attempts * 100) : 0;
+
+            return (
+                <div>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-2xl font-bold text-gray-900">Spaced Repetition Training</h3>
+                            <div className="text-sm text-gray-600">
+                                Card {currentIndex + 1} of {queue.length}
+                            </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((currentIndex + 1) / queue.length) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Flashcard */}
+                    <div className="bg-white rounded-xl shadow-xl p-8 mb-6 border-2 border-gray-200">
+                        {/* Progress Badge */}
+                        {phraseProgress && (
+                            <div className="mb-4">
+                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                    accuracy >= 80 ? 'bg-green-100 text-green-700' :
+                                    accuracy >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-red-100 text-red-700'
+                                }`}>
+                                    Accuracy: {Math.round(accuracy)}% ({phraseProgress.correct}/{phraseProgress.attempts})
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Translation (Question) */}
+                        <div className="mb-6">
+                            <p className="text-gray-500 text-sm font-medium mb-2">Translate to Vietnamese:</p>
+                            <p className="text-3xl font-bold text-gray-900 mb-2">{currentPhrase.translation}</p>
+                            <div className="flex items-center space-x-2 mt-3">
+                                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                    {currentPhrase.category}
+                                </span>
+                                {currentPhrase.politeness === 'polite' && (
+                                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
+                                        polite form required
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Answer Input */}
+                        <div className="mb-6">
+                            <input
+                                type="text"
+                                value={userAnswer}
+                                onChange={(e) => setUserAnswer(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && !showAnswer && userAnswer.trim()) {
+                                        handleCheckAnswer();
+                                    }
+                                }}
+                                disabled={showAnswer}
+                                placeholder="Type your answer in Vietnamese..."
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg focus:border-indigo-500 focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Answer Reveal */}
+                        {showAnswer && (
+                            <div className="bg-indigo-50 rounded-lg p-6 mb-6 animate-slide-in">
+                                <p className="text-sm text-indigo-600 font-medium mb-2">Correct Answer:</p>
+                                <p className="text-2xl font-bold text-indigo-900 mb-3">{currentPhrase.answer}</p>
+                                <p className="text-gray-700 mb-2">
+                                    <span className="font-medium">Notes:</span> {currentPhrase.notes}
+                                </p>
+                                {userAnswer && (
+                                    <div className="mt-3 pt-3 border-t border-indigo-200">
+                                        <p className="text-sm text-gray-600 mb-1">Your answer:</p>
+                                        <p className="text-lg text-gray-900">{userAnswer}</p>
+                                        {calculateSimilarity(userAnswer, currentPhrase.answer) >= 0.8 ? (
+                                            <p className="text-green-600 font-medium mt-2">✅ Excellent!</p>
+                                        ) : (
+                                            <p className="text-orange-600 font-medium mt-2">📝 Keep practicing!</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-3">
+                            {!showAnswer ? (
+                                <button
+                                    onClick={handleCheckAnswer}
+                                    disabled={!userAnswer.trim()}
+                                    className={`flex-1 px-6 py-3 rounded-lg font-semibold transition ${
+                                        userAnswer.trim()
+                                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Check Answer
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleNext}
+                                    className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                >
+                                    Next Card →
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Queue Overview */}
+                    <div className="bg-gray-100 rounded-lg p-4">
+                        <p className="text-sm text-gray-600 mb-2">
+                            <strong>Training Queue:</strong> This queue prioritizes phrases you've struggled with most.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {queue.map((phrase, idx) => {
+                                const progress = StorageManager.getPhrases()[phrase.phraseId];
+                                const acc = progress ? (progress.correct / progress.attempts * 100) : 0;
+                                
+                                return (
+                                    <div
+                                        key={phrase.phraseId}
+                                        className={`px-3 py-1 rounded text-xs font-medium ${
+                                            idx === currentIndex ? 'bg-indigo-600 text-white' :
+                                            acc >= 80 ? 'bg-green-200 text-green-800' :
+                                            acc >= 60 ? 'bg-yellow-200 text-yellow-800' :
+                                            'bg-red-200 text-red-800'
+                                        }`}
+                                    >
+                                        {idx + 1}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== REVIEW PAGE ====================
+        
+        function ReviewPage({ onBack }) {
+            const weakPhrases = StorageManager.getWeakPhrases(15);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userAnswer, setUserAnswer] = useState('');
+            const [showAnswer, setShowAnswer] = useState(false);
+
+            if (weakPhrases.length === 0) {
+                return (
+                    <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🎉</div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                            No phrases need review!
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                            You're doing great! Complete more scenarios to build your vocabulary.
+                        </p>
+                        <button
+                            onClick={onBack}
+                            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
+                        >
+                            Back to Home
+                        </button>
+                    </div>
+                );
+            }
+
+            const currentPhrase = weakPhrases[currentIndex];
+            const accuracy = currentPhrase.attempts > 0 ? (currentPhrase.correct / currentPhrase.attempts * 100) : 0;
+
+            const handleCheckAnswer = () => {
+                setShowAnswer(true);
+            };
+
+            const handleNext = () => {
+                const similarity = calculateSimilarity(userAnswer, currentPhrase.phrase);
+                const correct = similarity >= 0.8;
+
+                StorageManager.savePhraseProgress(currentPhrase.id, {
+                    correct,
+                    similarity,
+                    phrase: currentPhrase.phrase,
+                    translation: currentPhrase.translation,
+                    scenario: currentPhrase.scenario
+                });
+
+                setUserAnswer('');
+                setShowAnswer(false);
+                setCurrentIndex((prev) => (prev + 1) % weakPhrases.length);
+            };
+
+            const calculateSimilarity = (answer, correct) => {
+                const a = answer.toLowerCase().trim().replace(/\s+/g, ' ');
+                const c = correct.toLowerCase().trim().replace(/\s+/g, ' ');
+                
+                if (a === c) return 1.0;
+                
+                const aWords = a.split(' ');
+                const cWords = c.split(' ');
+                const matches = aWords.filter(word => cWords.includes(word)).length;
+                
+                return matches / Math.max(aWords.length, cWords.length);
+            };
+
+            return (
+                <div>
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">Micro-Drills Review</h2>
+                                <p className="text-gray-600">Practice your weak points from all scenarios</p>
+                            </div>
+                            <button
+                                onClick={onBack}
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                            >
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-semibold text-gray-900">
+                                Randomized Weak Points ({weakPhrases.length} phrases)
+                            </h3>
+                            <div className="text-sm text-gray-600">
+                                Card {currentIndex + 1} of {weakPhrases.length}
+                            </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((currentIndex + 1) / weakPhrases.length) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Flashcard */}
+                    <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-orange-200">
+                        {/* Metadata */}
+                        <div className="mb-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
+                                    Needs Practice
+                                </span>
+                                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                    from {currentPhrase.scenario}
+                                </span>
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                accuracy >= 70 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                                {Math.round(accuracy)}% accuracy
+                            </span>
+                        </div>
+
+                        {/* Question */}
+                        <div className="mb-6">
+                            <p className="text-gray-500 text-sm font-medium mb-2">Translate to Vietnamese:</p>
+                            <p className="text-3xl font-bold text-gray-900">{currentPhrase.translation}</p>
+                        </div>
+
+                        {/* Answer Input */}
+                        <div className="mb-6">
+                            <input
+                                type="text"
+                                value={userAnswer}
+                                onChange={(e) => setUserAnswer(e.target.value)}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && !showAnswer && userAnswer.trim()) {
+                                        handleCheckAnswer();
+                                    }
+                                }}
+                                disabled={showAnswer}
+                                placeholder="Type your answer..."
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg focus:border-indigo-500 focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Answer Reveal */}
+                        {showAnswer && (
+                            <div className="bg-green-50 rounded-lg p-6 mb-6 animate-slide-in">
+                                <p className="text-sm text-green-600 font-medium mb-2">Correct Answer:</p>
+                                <p className="text-2xl font-bold text-green-900 mb-3">{currentPhrase.phrase}</p>
+                                {userAnswer && (
+                                    <div className="mt-3 pt-3 border-t border-green-200">
+                                        <p className="text-sm text-gray-600 mb-1">Your answer:</p>
+                                        <p className="text-lg text-gray-900">{userAnswer}</p>
+                                        {calculateSimilarity(userAnswer, currentPhrase.phrase) >= 0.8 ? (
+                                            <p className="text-green-600 font-medium mt-2">✅ Great job!</p>
+                                        ) : (
+                                            <p className="text-orange-600 font-medium mt-2">📝 Review and try again!</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex space-x-3">
+                            {!showAnswer ? (
+                                <button
+                                    onClick={handleCheckAnswer}
+                                    disabled={!userAnswer.trim()}
+                                    className={`flex-1 px-6 py-3 rounded-lg font-semibold transition ${
+                                        userAnswer.trim()
+                                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Check Answer
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleNext}
+                                    className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                >
+                                    Next Card →
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== DASHBOARD PAGE ====================
+        
+        function DashboardPage({ stats, onBack }) {
+            const phrases = StorageManager.getPhrases();
+            const totalPhrases = Object.keys(phrases).length;
+            const mastered = Object.values(phrases).filter(p => p.repetitions >= 3).length;
+            const learning = totalPhrases - mastered;
+
+            return (
+                <div>
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">Weekly Dashboard</h2>
+                                <p className="text-gray-600">Your learning progress this week</p>
+                            </div>
+                            <button
+                                onClick={onBack}
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                            >
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                            <p className="text-blue-100 text-sm font-medium mb-2">Scenarios Completed</p>
+                            <p className="text-5xl font-bold mb-2">{stats.scenariosCompleted}</p>
+                            <p className="text-blue-100 text-sm">this week</p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                            <p className="text-green-100 text-sm font-medium mb-2">Avg Response Time</p>
+                            <p className="text-5xl font-bold mb-2">{stats.avgResponseTime}s</p>
+                            <p className="text-green-100 text-sm">per phrase</p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+                            <p className="text-purple-100 text-sm font-medium mb-2">Politeness Accuracy</p>
+                            <p className="text-5xl font-bold mb-2">{stats.politenessAccuracy}%</p>
+                            <p className="text-purple-100 text-sm">formal expressions</p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+                            <p className="text-orange-100 text-sm font-medium mb-2">Recovery Score</p>
+                            <p className="text-5xl font-bold mb-2">{stats.recoveryScore || 0}</p>
+                            <p className="text-orange-100 text-sm">from mistakes</p>
+                        </div>
+                    </div>
+
+                    {/* Progress Overview */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Learning Progress</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-gray-700">Mastered</span>
+                                        <span className="text-sm font-bold text-green-600">{mastered} phrases</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div 
+                                            className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                                            style={{ width: `${totalPhrases > 0 ? (mastered / totalPhrases * 100) : 0}%` }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium text-gray-700">Learning</span>
+                                        <span className="text-sm font-bold text-orange-600">{learning} phrases</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                        <div 
+                                            className="bg-orange-500 h-3 rounded-full transition-all duration-500"
+                                            style={{ width: `${totalPhrases > 0 ? (learning / totalPhrases * 100) : 0}%` }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">Total Vocabulary</span>
+                                        <span className="text-2xl font-bold text-indigo-600">{totalPhrases}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Weekly Goals</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center space-x-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                        stats.scenariosCompleted >= 5 ? 'bg-green-500' : 'bg-gray-300'
+                                    }`}>
+                                        {stats.scenariosCompleted >= 5 ? '✓' : '○'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-900">Complete 5 scenarios</p>
+                                        <p className="text-sm text-gray-600">{stats.scenariosCompleted}/5 done</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                        stats.politenessAccuracy >= 90 ? 'bg-green-500' : 'bg-gray-300'
+                                    }`}>
+                                        {stats.politenessAccuracy >= 90 ? '✓' : '○'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-900">90% politeness accuracy</p>
+                                        <p className="text-sm text-gray-600">{stats.politenessAccuracy}% achieved</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                        stats.avgResponseTime <= 8 ? 'bg-green-500' : 'bg-gray-300'
+                                    }`}>
+                                        {stats.avgResponseTime <= 8 ? '✓' : '○'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-900">Response time under 8s</p>
+                                        <p className="text-sm text-gray-600">{stats.avgResponseTime}s average</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                        mastered >= 20 ? 'bg-green-500' : 'bg-gray-300'
+                                    }`}>
+                                        {mastered >= 20 ? '✓' : '○'}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-900">Master 20 phrases</p>
+                                        <p className="text-sm text-gray-600">{mastered}/20 mastered</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Insights */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-xl p-8 text-white">
+                        <h3 className="text-2xl font-bold mb-4">💡 Weekly Insights</h3>
+                        <div className="space-y-3">
+                            {stats.scenariosCompleted >= 5 && (
+                                <p className="text-indigo-100">
+                                    🎉 Great work this week! You've completed {stats.scenariosCompleted} scenarios.
+                                </p>
+                            )}
+                            {stats.politenessAccuracy >= 85 && (
+                                <p className="text-indigo-100">
+                                    👔 Excellent politeness awareness! You're using formal Vietnamese naturally.
+                                </p>
+                            )}
+                            {stats.avgResponseTime <= 10 && (
+                                <p className="text-indigo-100">
+                                    ⚡ Your response time is improving! Phrases are becoming more automatic.
+                                </p>
+                            )}
+                            {mastered >= 15 && (
+                                <p className="text-indigo-100">
+                                    🏆 You've mastered {mastered} phrases! Keep up the momentum.
+                                </p>
+                            )}
+                            {stats.scenariosCompleted < 3 && (
+                                <p className="text-indigo-100">
+                                    📚 Try to complete at least 3 scenarios this week for better progress.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== RENDER APP ====================
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
