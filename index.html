@@ -1182,6 +1182,8 @@
                     setStage('test');
                     setUserAnswers({});
                     setStartTime(Date.now());
+                } else if (stage === 'test') {
+                    setStage('rebuild');
                 }
             };
 
@@ -1216,7 +1218,7 @@
                                     <p className="text-gray-600">Read through the complete conversation and learn the key phrases</p>
                                 </div>
                                 <div className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold">
-                                    Step 1 of 3
+                                    Step 1 of 5
                                 </div>
                             </div>
                         </div>
@@ -1345,7 +1347,7 @@
                                     <p className="text-gray-600">Choose the correct Vietnamese phrase for each situation</p>
                                 </div>
                                 <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
-                                    Step 2 of 3
+                                    Step 2 of 5
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -1533,6 +1535,16 @@
                 );
             };
 
+            // STAGE 4: REBUILD THE SENTENCE
+            if (stage === 'rebuild') {
+                return <RebuildStage dialogue={dialogue} onBack={() => setStage('test')} onNextStage={() => setStage('listening')} onRestart={() => { setStage('learn'); setUserAnswers({}); setSubmitted(false); setCurrentBlankIndex(0); setStartTime(Date.now()); }} />;
+            }
+
+            // STAGE 5: LISTENING MODE
+            if (stage === 'listening') {
+                return <ListeningStage dialogue={dialogue} onBack={() => setStage('rebuild')} onRestart={() => { setStage('learn'); setUserAnswers({}); setSubmitted(false); setCurrentBlankIndex(0); setStartTime(Date.now()); }} />;
+            }
+
             if (!dialogue) {
                 return <div className="text-center py-12">Loading dialogue...</div>;
             }
@@ -1549,11 +1561,10 @@
                                 <p className="text-gray-600">Now fill in the blanks from memory - you've got this!</p>
                             </div>
                             <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
-                                Final Step
+                                Step 3 of 5
                             </div>
                         </div>
                     </div>
-
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 mb-6">
                         <p className="text-lg text-gray-700 mb-2">
                             <strong>Context:</strong> {dialogue.context}
@@ -1583,7 +1594,7 @@
                                 </p>
                             )}
                         </div>
-                        <div>
+                        <div className="flex space-x-3">
                             {!submitted ? (
                                 <button
                                     onClick={handleSubmit}
@@ -1597,17 +1608,644 @@
                                     Submit Test
                                 </button>
                             ) : (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            setStage('learn');
+                                            setUserAnswers({});
+                                            setSubmitted(false);
+                                            setCurrentBlankIndex(0);
+                                            setStartTime(Date.now());
+                                        }}
+                                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                                    >
+                                        Practice Again
+                                    </button>
+                                    <button
+                                        onClick={() => setStage('rebuild')}
+                                        className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                    >
+                                        Next: Rebuild →
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== REBUILD STAGE ====================
+
+        function RebuildStage({ dialogue, onBack, onRestart, onNextStage }) {
+            // Build sentence pool: fill in blank placeholders with correct answers so all words are present
+            const sentences = React.useMemo(() => {
+                // Build a lookup map: blankId -> answer (e.g. 'blank1' -> 'trách nhiệm')
+                const answerMap = {};
+                (dialogue.blanks || []).forEach(b => { answerMap[b.id] = b.answer; });
+                return dialogue.dialogue
+                    .map(line => {
+                        // Replace [BLANK1] with the correct answer for blank1, etc.
+                        const filled = line.text.replace(/\[BLANK(\d+)\]/g, (_, n) => {
+                            const key = 'blank' + n;
+                            return answerMap[key] || '';
+                        }).replace(/\s+/g, ' ').trim();
+                        return { speaker: line.speaker, text: filled };
+                    })
+                    .filter(line => line.text.length > 8);
+            }, [dialogue]);
+
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [selectedWords, setSelectedWords] = useState([]);
+            const [availableWords, setAvailableWords] = useState([]);
+            const [result, setResult] = useState(null); // null | 'correct' | 'incorrect'
+            const [completed, setCompleted] = useState(0);
+
+            const shuffleArray = (arr) => {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            };
+
+            const loadSentence = (index) => {
+                const sentence = sentences[index];
+                if (!sentence) return;
+                // Split on spaces, keep punctuation attached to word
+                const words = sentence.text.split(' ').filter(w => w.length > 0);
+                // Tag each word with a unique id to handle duplicates
+                const tagged = words.map((w, i) => ({ id: `w${i}`, word: w }));
+                setAvailableWords(shuffleArray(tagged));
+                setSelectedWords([]);
+                setResult(null);
+            };
+
+            useEffect(() => {
+                loadSentence(currentIndex);
+            }, [currentIndex]);
+
+            const handlePickWord = (item) => {
+                setAvailableWords(prev => prev.filter(w => w.id !== item.id));
+                setSelectedWords(prev => [...prev, item]);
+                setResult(null);
+            };
+
+            const handleRemoveWord = (item) => {
+                setSelectedWords(prev => prev.filter(w => w.id !== item.id));
+                setAvailableWords(prev => [...prev, item]);
+                setResult(null);
+            };
+
+            const handleCheck = () => {
+                const answer = selectedWords.map(w => w.word).join(' ');
+                const correct = sentences[currentIndex].text;
+                if (answer === correct) {
+                    setResult('correct');
+                    setCompleted(prev => prev + 1);
+                } else {
+                    setResult('incorrect');
+                }
+            };
+
+            const handleNext = () => {
+                if (currentIndex < sentences.length - 1) {
+                    setCurrentIndex(prev => prev + 1);
+                }
+            };
+
+            const handleTryAgain = () => {
+                loadSentence(currentIndex);
+            };
+
+            const isLastSentence = currentIndex === sentences.length - 1;
+            const allDone = isLastSentence && result === 'correct';
+            const current = sentences[currentIndex];
+
+            return (
+                <div>
+                    {/* Header */}
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">🧩 Stage 4: Rebuild the Sentence</h3>
+                                <p className="text-gray-600">Arrange the words in the correct order to rebuild each sentence</p>
+                            </div>
+                            <div className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold">
+                                Step 4 of 5
+                            </div>
+                        </div>
+                        {/* Progress bar */}
+                        <div className="flex items-center space-x-3">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-teal-500 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${((currentIndex + (result === 'correct' ? 1 : 0)) / sentences.length) * 100}%` }}
+                                />
+                            </div>
+                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                                {currentIndex + 1} / {sentences.length}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Card */}
+                    <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
+                        {/* Speaker badge */}
+                        <div className="mb-5">
+                            <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-semibold">
+                                {current.speaker}
+                            </span>
+                        </div>
+
+                        {/* Answer area */}
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Your sentence</p>
+                            <div
+                                className={`min-h-[60px] flex flex-wrap gap-2 p-4 rounded-xl border-2 transition-colors ${
+                                    result === 'correct' ? 'border-green-400 bg-green-50' :
+                                    result === 'incorrect' ? 'border-red-400 bg-red-50' :
+                                    'border-dashed border-gray-300 bg-gray-50'
+                                }`}
+                            >
+                                {selectedWords.length === 0 && (
+                                    <span className="text-gray-400 text-sm italic self-center">Click words below to build the sentence…</span>
+                                )}
+                                {selectedWords.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => result === null && handleRemoveWord(item)}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                            result === 'correct' ? 'bg-green-200 text-green-900 cursor-default' :
+                                            result === 'incorrect' ? 'bg-red-200 text-red-900 cursor-default' :
+                                            'bg-indigo-600 text-white hover:bg-red-500 hover:scale-95'
+                                        }`}
+                                        title={result === null ? 'Click to remove' : ''}
+                                    >
+                                        {item.word}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Word bank */}
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Word bank</p>
+                            <div className="flex flex-wrap gap-2 min-h-[44px]">
+                                {availableWords.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => result === null && handlePickWord(item)}
+                                        disabled={result !== null}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
+                                            result !== null
+                                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-default'
+                                                : 'bg-white border-indigo-300 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-500 hover:scale-105 active:scale-95'
+                                        }`}
+                                    >
+                                        {item.word}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Result feedback */}
+                        {result === 'correct' && (
+                            <div className="flex items-center space-x-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl animate-slide-in">
+                                <span className="text-2xl">✅</span>
+                                <div>
+                                    <p className="font-bold text-green-800">Correct!</p>
+                                    <p className="text-green-700 text-sm">Perfect — the sentence matches exactly.</p>
+                                </div>
+                            </div>
+                        )}
+                        {result === 'incorrect' && (
+                            <div className="flex items-center space-x-3 p-4 bg-red-50 border-2 border-red-300 rounded-xl animate-slide-in">
+                                <span className="text-2xl">❌</span>
+                                <div>
+                                    <p className="font-bold text-red-800">Try again!</p>
+                                    <p className="text-red-700 text-sm">The word order isn't quite right. Remove words and try a different order.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* All done screen */}
+                    {allDone && (
+                        <div className="bg-gradient-to-r from-teal-500 to-green-500 rounded-xl p-8 text-white text-center mb-6 animate-slide-in">
+                            <div className="text-5xl mb-3">🎉</div>
+                            <h4 className="text-2xl font-bold mb-2">All sentences rebuilt!</h4>
+                            <p className="text-teal-100 mb-1">You've completed all 5 stages of this scenario.</p>
+                            <p className="text-teal-100">You scored {completed} / {sentences.length} on the rebuild exercises.</p>
+                        </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-between border-t pt-6">
+                        <button
+                            onClick={onBack}
+                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                        >
+                            ← Back to Test
+                        </button>
+                        <div className="flex space-x-3">
+                            {result === 'incorrect' && (
                                 <button
-                                    onClick={() => {
-                                        setStage('learn');
-                                        setUserAnswers({});
-                                        setSubmitted(false);
-                                        setCurrentBlankIndex(0);
-                                        setStartTime(Date.now());
-                                    }}
-                                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                    onClick={handleTryAgain}
+                                    className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
                                 >
-                                    Practice Again
+                                    Reset Words
+                                </button>
+                            )}
+                            {result === 'correct' && !isLastSentence && (
+                                <button
+                                    onClick={handleNext}
+                                    className="px-8 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition"
+                                >
+                                    Next Sentence →
+                                </button>
+                            )}
+                            {allDone && (
+                                <>
+                                    <button
+                                        onClick={onRestart}
+                                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                                    >
+                                        Start Over 🔄
+                                    </button>
+                                    <button
+                                        onClick={onNextStage}
+                                        className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+                                    >
+                                        Next: Listening 🎧
+                                    </button>
+                                </>
+                            )}
+                            {result === null && (
+                                <button
+                                    onClick={handleCheck}
+                                    disabled={selectedWords.length === 0}
+                                    className={`px-8 py-3 rounded-lg font-semibold transition ${
+                                        selectedWords.length > 0
+                                            ? 'bg-teal-600 text-white hover:bg-teal-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Check ✓
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+
+        // ==================== LISTENING STAGE ====================
+
+        function ListeningStage({ dialogue, onBack, onRestart }) {
+            const { useState, useEffect, useRef, useMemo } = React;
+
+            // Reuse same sentence pool as RebuildStage — fill in blank answers so all words are present
+            const sentences = useMemo(() => {
+                const answerMap = {};
+                (dialogue.blanks || []).forEach(b => { answerMap[b.id] = b.answer; });
+                return dialogue.dialogue
+                    .map(line => {
+                        const filled = line.text.replace(/\[BLANK(\d+)\]/g, (_, n) => {
+                            const key = 'blank' + n;
+                            return answerMap[key] || '';
+                        }).replace(/\s+/g, ' ').trim();
+                        return { speaker: line.speaker, text: filled };
+                    })
+                    .filter(line => line.text.length > 8);
+            }, [dialogue]);
+
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [hasPlayed, setHasPlayed] = useState(false);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [selectedWords, setSelectedWords] = useState([]);
+            const [availableWords, setAvailableWords] = useState([]);
+            const [result, setResult] = useState(null); // null | 'correct' | 'incorrect'
+            const [completed, setCompleted] = useState(0);
+            const [ttsSupported, setTtsSupported] = useState(true);
+            const utteranceRef = useRef(null);
+
+            const shuffleArray = (arr) => {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            };
+
+            const loadSentence = (index) => {
+                const sentence = sentences[index];
+                if (!sentence) return;
+                const words = sentence.text.split(' ').filter(w => w.length > 0);
+                const tagged = words.map((w, i) => ({ id: `lw${i}`, word: w }));
+                setAvailableWords(shuffleArray(tagged));
+                setSelectedWords([]);
+                setResult(null);
+                setHasPlayed(false);
+                setIsPlaying(false);
+                // Cancel any ongoing speech
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            };
+
+            useEffect(() => {
+                if (!window.speechSynthesis) {
+                    setTtsSupported(false);
+                }
+                loadSentence(0);
+                return () => {
+                    if (window.speechSynthesis) window.speechSynthesis.cancel();
+                };
+            }, []);
+
+            useEffect(() => {
+                loadSentence(currentIndex);
+            }, [currentIndex]);
+
+            const playAudio = () => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const text = sentences[currentIndex].text;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 0.85;
+                utterance.pitch = 1;
+
+                // Try to find a Vietnamese voice
+                const voices = window.speechSynthesis.getVoices();
+                const viVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.startsWith('vi'));
+                if (viVoice) utterance.voice = viVoice;
+
+                utterance.onstart = () => setIsPlaying(true);
+                utterance.onend = () => {
+                    setIsPlaying(false);
+                    setHasPlayed(true);
+                };
+                utterance.onerror = () => {
+                    setIsPlaying(false);
+                    setHasPlayed(true);
+                };
+                utteranceRef.current = utterance;
+                window.speechSynthesis.speak(utterance);
+            };
+
+            // Voices may load async — retry after a short delay if needed
+            const handlePlayClick = () => {
+                if (window.speechSynthesis.getVoices().length === 0) {
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        window.speechSynthesis.onvoiceschanged = null;
+                        playAudio();
+                    };
+                    // Fallback: play anyway after 300ms even without voice list
+                    setTimeout(() => playAudio(), 300);
+                } else {
+                    playAudio();
+                }
+            };
+
+            const handlePickWord = (item) => {
+                if (result !== null) return;
+                setAvailableWords(prev => prev.filter(w => w.id !== item.id));
+                setSelectedWords(prev => [...prev, item]);
+            };
+
+            const handleRemoveWord = (item) => {
+                if (result !== null) return;
+                setSelectedWords(prev => prev.filter(w => w.id !== item.id));
+                setAvailableWords(prev => [...prev, item]);
+            };
+
+            const handleCheck = () => {
+                const answer = selectedWords.map(w => w.word).join(' ');
+                const correct = sentences[currentIndex].text;
+                if (answer === correct) {
+                    setResult('correct');
+                    setCompleted(prev => prev + 1);
+                } else {
+                    setResult('incorrect');
+                }
+            };
+
+            const handleTryAgain = () => {
+                loadSentence(currentIndex);
+            };
+
+            const handleNext = () => {
+                if (currentIndex < sentences.length - 1) {
+                    setCurrentIndex(prev => prev + 1);
+                }
+            };
+
+            const isLastSentence = currentIndex === sentences.length - 1;
+            const allDone = isLastSentence && result === 'correct';
+            const current = sentences[currentIndex];
+
+            return (
+                <div>
+                    {/* Header */}
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">🎧 Stage 5: Listening Mode</h3>
+                                <p className="text-gray-600">Listen to the sentence, then rebuild it from memory</p>
+                            </div>
+                            <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
+                                Final Step
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${((currentIndex + (result === 'correct' ? 1 : 0)) / sentences.length) * 100}%` }}
+                                />
+                            </div>
+                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                                {currentIndex + 1} / {sentences.length}
+                            </span>
+                        </div>
+                    </div>
+
+                    {!ttsSupported && (
+                        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6 flex items-center space-x-3">
+                            <span className="text-2xl">⚠️</span>
+                            <p className="text-yellow-800 text-sm">Your browser doesn't support Text-to-Speech. The sentence is shown below so you can still practice rebuilding.</p>
+                        </div>
+                    )}
+
+                    {/* Card */}
+                    <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
+                        {/* Speaker badge */}
+                        <div className="flex items-center justify-between mb-6">
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                {current.speaker}
+                            </span>
+                            <span className="text-xs text-gray-400 italic">Sentence {currentIndex + 1} of {sentences.length}</span>
+                        </div>
+
+                        {/* Audio play zone */}
+                        <div className="flex flex-col items-center justify-center py-8 mb-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
+                            <button
+                                onClick={handlePlayClick}
+                                disabled={isPlaying}
+                                className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg transition-all mb-4 ${
+                                    isPlaying
+                                        ? 'bg-purple-300 cursor-not-allowed scale-95'
+                                        : 'bg-purple-600 hover:bg-purple-700 hover:scale-110 active:scale-95 text-white'
+                                }`}
+                                title="Play audio"
+                            >
+                                {isPlaying ? '⏸' : '▶'}
+                            </button>
+                            <p className="text-purple-700 font-semibold text-sm mb-1">
+                                {isPlaying ? 'Playing…' : hasPlayed ? 'Play again' : 'Play Audio'}
+                            </p>
+                            <p className="text-purple-400 text-xs">Vietnamese (vi-VN) · click to replay anytime</p>
+
+                            {/* Fallback: show sentence if TTS unsupported */}
+                            {!ttsSupported && (
+                                <p className="mt-4 text-gray-800 text-lg font-medium text-center px-4">{current.text}</p>
+                            )}
+                        </div>
+
+                        {/* Word puzzle — always shown so user can start building while listening */}
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Your sentence</p>
+                            <div
+                                className={`min-h-[60px] flex flex-wrap gap-2 p-4 rounded-xl border-2 transition-colors ${
+                                    result === 'correct' ? 'border-green-400 bg-green-50' :
+                                    result === 'incorrect' ? 'border-red-400 bg-red-50' :
+                                    'border-dashed border-gray-300 bg-gray-50'
+                                }`}
+                            >
+                                {selectedWords.length === 0 && (
+                                    <span className="text-gray-400 text-sm italic self-center">Click words below to build the sentence…</span>
+                                )}
+                                {selectedWords.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handleRemoveWord(item)}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                            result === 'correct' ? 'bg-green-200 text-green-900 cursor-default' :
+                                            result === 'incorrect' ? 'bg-red-200 text-red-900 cursor-default' :
+                                            'bg-purple-600 text-white hover:bg-red-500 hover:scale-95'
+                                        }`}
+                                        title={result === null ? 'Click to remove' : ''}
+                                    >
+                                        {item.word}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Word bank</p>
+                            <div className="flex flex-wrap gap-2 min-h-[44px]">
+                                {availableWords.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handlePickWord(item)}
+                                        disabled={result !== null}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
+                                            result !== null
+                                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-default'
+                                                : 'bg-white border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-500 hover:scale-105 active:scale-95'
+                                        }`}
+                                    >
+                                        {item.word}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Result feedback */}
+                        {result === 'correct' && (
+                            <div className="animate-slide-in">
+                                <div className="flex items-center space-x-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl mb-3">
+                                    <span className="text-2xl">✅</span>
+                                    <div>
+                                        <p className="font-bold text-green-800">Correct!</p>
+                                        <p className="text-green-700 text-sm">You rebuilt the sentence perfectly from audio.</p>
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <p className="text-xs text-gray-500 mb-1">Full sentence:</p>
+                                    <p className="text-gray-800 font-medium">{current.text}</p>
+                                </div>
+                            </div>
+                        )}
+                        {result === 'incorrect' && (
+                            <div className="flex items-center space-x-3 p-4 bg-red-50 border-2 border-red-300 rounded-xl animate-slide-in">
+                                <span className="text-2xl">❌</span>
+                                <div>
+                                    <p className="font-bold text-red-800">Try again!</p>
+                                    <p className="text-red-700 text-sm">Listen again and rearrange the words. You can replay as many times as you need!</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* All done banner */}
+                    {allDone && (
+                        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-8 text-white text-center mb-6 animate-slide-in">
+                            <div className="text-5xl mb-3">🏆</div>
+                            <h4 className="text-2xl font-bold mb-2">All 5 stages complete!</h4>
+                            <p className="text-purple-100 mb-1">Outstanding work — you've finished Listening Mode.</p>
+                            <p className="text-purple-200">Listening score: {completed} / {sentences.length} sentences</p>
+                        </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-between border-t pt-6">
+                        <button
+                            onClick={onBack}
+                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                        >
+                            ← Back to Rebuild
+                        </button>
+                        <div className="flex space-x-3">
+                            {result === 'incorrect' && (
+                                <button
+                                    onClick={handleTryAgain}
+                                    className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
+                                >
+                                    Reset Words
+                                </button>
+                            )}
+                            {result === 'correct' && !isLastSentence && (
+                                <button
+                                    onClick={handleNext}
+                                    className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+                                >
+                                    Next Sentence →
+                                </button>
+                            )}
+                            {allDone && (
+                                <button
+                                    onClick={onRestart}
+                                    className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                                >
+                                    Start Over 🔄
+                                </button>
+                            )}
+                            {result === null && (
+                                <button
+                                    onClick={handleCheck}
+                                    disabled={selectedWords.length === 0}
+                                    className={`px-8 py-3 rounded-lg font-semibold transition ${
+                                        selectedWords.length > 0
+                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Check ✓
                                 </button>
                             )}
                         </div>
