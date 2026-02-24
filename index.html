@@ -241,13 +241,13 @@
                 estimatedTime: '10 min'
             },
             {
-                id: 'hotel_booking',
-                title: 'Khách sạn - Đặt phòng',
-                description: 'Booking a hotel room',
-                icon: '🏨',
+                id: 'workplace_meeting',
+                title: 'Họp nhóm công việc',
+                description: 'Workplace Meetings and Professional Communication',
+                icon: '💼',
                 difficulty: 'intermediate',
-                objectives: ['Make reservation', 'Discuss room types', 'Handle special requests'],
-                estimatedTime: '8 min'
+                objectives: ['Discuss project progress', 'Propose and evaluate strategies', 'Assign responsibilities professionally'],
+                estimatedTime: '10 min'
             },
             {
                 id: 'restaurant_order',
@@ -448,6 +448,176 @@
                         notes: '"Dự án" = project. Used in professional and personal contexts.',
                         politeness: 'neutral',
                         category: 'work'
+                    }
+                ]
+            },
+            'workplace_meeting': {
+                scenario: 'Họp nhóm công việc',
+                context: 'A team meeting to update project progress and discuss the marketing strategy for a new product.',
+                dialogue: [
+                    { speaker: 'Trưởng nhóm', text: 'Hôm nay chúng ta họp để cập nhật [BLANK1] dự án và thảo luận về [BLANK2] quảng bá sản phẩm mới.' },
+                    { speaker: 'Anna', text: 'Theo em, tiến độ nhìn chung khá tốt, nhưng vẫn còn một số vấn đề cần giải quyết.' },
+                    { speaker: 'Trưởng nhóm', text: 'Cụ thể là vấn đề gì?' },
+                    { speaker: 'Anna', text: 'Vì [BLANK3] quảng cáo bị cắt giảm nên [BLANK4] khách hàng thấp hơn [BLANK5].' },
+                    { speaker: 'Minh', text: 'Tôi đồng ý một phần. Tuy nhiên, tôi nghĩ chúng ta có thể [BLANK6] kênh truyền thông hiện tại thay vì tăng ngân sách.' },
+                    { speaker: 'Anna', text: 'Ý kiến đó cũng [BLANK7]. Mặc dù ngân sách [BLANK8] nhưng nếu chúng ta tập trung vào khách hàng mục tiêu thì hiệu quả có thể cao hơn.' },
+                    { speaker: 'Trưởng nhóm', text: 'Vậy ai sẽ [BLANK9] phân tích lại nhóm khách hàng mục tiêu?' },
+                    { speaker: 'Minh', text: 'Tôi có thể phụ trách phần đó, nhưng tôi cần thêm dữ liệu từ bộ phận nghiên cứu thị trường.' },
+                    { speaker: 'Anna', text: 'Không những cần dữ liệu mới mà chúng ta còn nên xem lại [BLANK10] từ chiến dịch trước.' },
+                    { speaker: 'Trưởng nhóm', text: 'Đúng rồi. Phản hồi của khách hàng khá tích cực, tuy nhiên [BLANK11] vẫn chưa cao.' },
+                    { speaker: 'Minh', text: 'Có lẽ vấn đề nằm ở [BLANK12] truyền thông chưa đủ rõ ràng.' },
+                    { speaker: 'Anna', text: 'Tôi nghĩ là chúng ta nên [BLANK13] nội dung theo hướng đơn giản và trực tiếp hơn.' },
+                    { speaker: 'Trưởng nhóm', text: 'Nếu thay đổi thông điệp, chúng ta cần đảm bảo rằng hình ảnh thương hiệu vẫn [BLANK14].' },
+                    { speaker: 'Minh', text: 'Tôi hoàn toàn đồng ý. Mặc dù cần sáng tạo nhưng không nên làm mất [BLANK15] thương hiệu.' },
+                    { speaker: 'Anna', text: 'Vậy bước tiếp theo là gì ạ?' },
+                    { speaker: 'Trưởng nhóm', text: 'Minh phân tích lại nhóm khách hàng, Anna điều chỉnh nội dung thông điệp. Tuần sau chúng ta sẽ họp lại để [BLANK16] kết quả.' },
+                    { speaker: 'Anna', text: 'Dạ, tôi sẽ hoàn thành trước thứ Sáu để cả nhóm có thời gian xem lại.' },
+                    { speaker: 'Minh', text: 'Nếu có khó khăn gì, tôi sẽ [BLANK17] thêm với anh trước khi đưa ra [BLANK18].' }
+                ],
+                blanks: [
+                    {
+                        id: 'blank1',
+                        answer: 'tiến độ',
+                        translation: 'progress / timeline',
+                        notes: '"Tiến độ" = progress or schedule. "Cập nhật tiến độ" = to update on progress. Common in professional meetings.',
+                        politeness: 'neutral',
+                        category: 'business'
+                    },
+                    {
+                        id: 'blank2',
+                        answer: 'chiến lược',
+                        translation: 'strategy',
+                        notes: '"Chiến lược" = strategy. "Chiến lược quảng bá" = promotion/marketing strategy.',
+                        politeness: 'neutral',
+                        category: 'business'
+                    },
+                    {
+                        id: 'blank3',
+                        answer: 'ngân sách',
+                        translation: 'budget',
+                        notes: '"Ngân sách" = budget. "Ngân sách bị cắt giảm" = budget was cut/reduced.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank4',
+                        answer: 'phạm vi tiếp cận',
+                        translation: 'reach / scope of reach',
+                        notes: '"Phạm vi tiếp cận" = reach (e.g. how many customers you reach). Common in marketing contexts.',
+                        politeness: 'neutral',
+                        category: 'marketing'
+                    },
+                    {
+                        id: 'blank5',
+                        answer: 'dự kiến',
+                        translation: 'expected / projected / planned',
+                        notes: '"Dự kiến" = expected/projected. "Thấp hơn dự kiến" = lower than expected.',
+                        politeness: 'neutral',
+                        category: 'business'
+                    },
+                    {
+                        id: 'blank6',
+                        answer: 'tối ưu hóa',
+                        translation: 'to optimize',
+                        notes: '"Tối ưu hóa" = to optimize. Used in tech, marketing, and business contexts.',
+                        politeness: 'neutral',
+                        category: 'business'
+                    },
+                    {
+                        id: 'blank7',
+                        answer: 'hợp lý',
+                        translation: 'reasonable / logical / sensible',
+                        notes: '"Hợp lý" = reasonable/makes sense. "Ý kiến đó cũng hợp lý" = That idea is also reasonable.',
+                        politeness: 'neutral',
+                        category: 'evaluation'
+                    },
+                    {
+                        id: 'blank8',
+                        answer: 'hạn chế',
+                        translation: 'limited / restricted',
+                        notes: '"Hạn chế" = limited/restricted. "Ngân sách hạn chế" = limited budget. Also a noun meaning limitation.',
+                        politeness: 'neutral',
+                        category: 'description'
+                    },
+                    {
+                        id: 'blank9',
+                        answer: 'chịu trách nhiệm',
+                        translation: 'to be responsible for / take responsibility',
+                        notes: '"Chịu trách nhiệm" = to be in charge of / responsible for. Used to assign tasks formally.',
+                        politeness: 'neutral',
+                        category: 'professional'
+                    },
+                    {
+                        id: 'blank10',
+                        answer: 'phản hồi',
+                        translation: 'feedback / response',
+                        notes: '"Phản hồi" = feedback or response. "Xem lại phản hồi" = review feedback.',
+                        politeness: 'neutral',
+                        category: 'business'
+                    },
+                    {
+                        id: 'blank11',
+                        answer: 'tỷ lệ chuyển đổi',
+                        translation: 'conversion rate',
+                        notes: '"Tỷ lệ chuyển đổi" = conversion rate. Key metric in marketing/sales.',
+                        politeness: 'neutral',
+                        category: 'marketing'
+                    },
+                    {
+                        id: 'blank12',
+                        answer: 'thông điệp',
+                        translation: 'message / messaging',
+                        notes: '"Thông điệp" = message or brand messaging. "Thông điệp truyền thông" = communications message.',
+                        politeness: 'neutral',
+                        category: 'marketing'
+                    },
+                    {
+                        id: 'blank13',
+                        answer: 'điều chỉnh',
+                        translation: 'to adjust / to revise',
+                        notes: '"Điều chỉnh" = to adjust/tweak. "Điều chỉnh nội dung" = revise the content.',
+                        politeness: 'neutral',
+                        category: 'action'
+                    },
+                    {
+                        id: 'blank14',
+                        answer: 'nhất quán',
+                        translation: 'consistent',
+                        notes: '"Nhất quán" = consistent. "Hình ảnh thương hiệu vẫn nhất quán" = brand image remains consistent.',
+                        politeness: 'neutral',
+                        category: 'branding'
+                    },
+                    {
+                        id: 'blank15',
+                        answer: 'bản sắc',
+                        translation: 'identity / character / essence',
+                        notes: '"Bản sắc" = identity/essence. "Bản sắc thương hiệu" = brand identity.',
+                        politeness: 'neutral',
+                        category: 'branding'
+                    },
+                    {
+                        id: 'blank16',
+                        answer: 'đánh giá',
+                        translation: 'to evaluate / to assess / review',
+                        notes: '"Đánh giá" = to evaluate/assess. "Đánh giá kết quả" = evaluate results.',
+                        politeness: 'neutral',
+                        category: 'evaluation'
+                    },
+                    {
+                        id: 'blank17',
+                        answer: 'trao đổi',
+                        translation: 'to discuss / to exchange ideas',
+                        notes: '"Trao đổi" = to discuss/exchange. More collaborative than "nói chuyện". Common in professional settings.',
+                        politeness: 'neutral',
+                        category: 'professional'
+                    },
+                    {
+                        id: 'blank18',
+                        answer: 'quyết định cuối cùng',
+                        translation: 'final decision',
+                        notes: '"Quyết định cuối cùng" = final decision. "Đưa ra quyết định" = to make/give a decision.',
+                        politeness: 'neutral',
+                        category: 'professional'
                     }
                 ]
             },
