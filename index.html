@@ -251,11 +251,11 @@
             },
             {
                 id: 'restaurant_order',
-                title: 'Nhà hàng - Gọi món',
-                description: 'Ordering food at a restaurant',
-                icon: '🍜',
+                title: 'Thuê nhà - Thương lượng',
+                description: 'Renting, Contracts, and Negotiation',
+                icon: '🏠',
                 difficulty: 'intermediate',
-                objectives: ['Order dishes politely', 'Ask about ingredients', 'Request modifications'],
+                objectives: ['Negotiate rent and contract terms', 'Discuss deposit and payment conditions', 'Clarify repair responsibilities and refund clauses'],
                 estimatedTime: '12 min'
             },
             {
@@ -622,58 +622,180 @@
                 ]
             },
             'restaurant_order': {
-                scenario: 'Nhà hàng - Gọi món',
-                context: 'You are at a local Vietnamese restaurant ordering phở and drinks.',
+                scenario: 'Thuê nhà - Thương lượng',
+                context: 'Anna visits a landlord to view an apartment and negotiates the rental price, deposit, contract length, and repair responsibilities.',
                 dialogue: [
-                    { speaker: 'Phục vụ', text: 'Xin chào! [BLANK1] ạ?' },
-                    { speaker: 'Bạn', text: 'Chào chị. [BLANK2] và một ly nước chanh.' },
-                    { speaker: 'Phục vụ', text: 'Vâng ạ. Phở bò hay phở gà ạ?' },
-                    { speaker: 'Bạn', text: '[BLANK3].' },
-                    { speaker: 'Phục vụ', text: 'Dạ. Bạn ăn cay không ạ?' },
-                    { speaker: 'Bạn', text: '[BLANK4].' },
-                    { speaker: 'Phục vụ', text: 'Vâng ạ. Món sẽ có trong 10 phút nữa nhé!' },
-                    { speaker: 'Bạn', text: '[BLANK5]!' }
+                    { speaker: 'Chủ nhà', text: 'Chào bạn, bạn đến xem [BLANK1] phải không?' },
+                    { speaker: 'Anna', text: 'Vâng, tôi có hẹn trước. Căn hộ này vẫn còn trống chứ ạ?' },
+                    { speaker: 'Chủ nhà', text: 'Vẫn còn. Căn này rộng 60 mét vuông, có hai phòng ngủ và đã được trang bị đầy đủ nội thất.' },
+                    { speaker: 'Anna', text: 'Tôi thấy vị trí khá thuận tiện. Tuy nhiên, [BLANK2] mỗi tháng là bao nhiêu ạ?' },
+                    { speaker: 'Chủ nhà', text: 'Giá thuê là 15 triệu một tháng, chưa bao gồm điện nước.' },
+                    { speaker: 'Anna', text: 'Vì tôi dự định thuê lâu dài nên không biết giá đó có thể [BLANK3] được không?' },
+                    { speaker: 'Chủ nhà', text: 'Thông thường thì giá [BLANK4], nhưng nếu bạn [BLANK5] ít nhất một năm thì tôi có thể giảm một chút.' },
+                    { speaker: 'Anna', text: 'Nếu tôi ký hai năm thì anh có thể giảm xuống còn 14 triệu được không?' },
+                    { speaker: 'Chủ nhà', text: 'Mặc dù hai năm là [BLANK6] khá dài nhưng 14 triệu thì hơi thấp. Tôi có thể giảm xuống 14 triệu rưỡi.' },
+                    { speaker: 'Anna', text: 'Tôi hiểu. Không những tôi thuê lâu dài mà còn sẵn sàng [BLANK7] ba tháng tiền thuê.' },
+                    { speaker: 'Chủ nhà', text: 'Đặt cọc ba tháng thì cũng [BLANK8]. Tuy nhiên, bạn cần thanh toán tiền thuê vào đầu mỗi tháng.' },
+                    { speaker: 'Anna', text: 'Điều đó không vấn đề gì. Tôi chỉ muốn hỏi thêm: nếu có hỏng hóc thì ai [BLANK9] [BLANK10]?' },
+                    { speaker: 'Chủ nhà', text: 'Nếu thiết bị hỏng do sử dụng bình thường thì tôi sẽ chịu [BLANK11] sửa chữa. Nhưng nếu do bạn làm hỏng thì bạn phải tự chi trả.' },
+                    { speaker: 'Anna', text: 'Như vậy thì rõ ràng rồi. Mặc dù giá hơi cao so với [BLANK12] của tôi nhưng căn hộ này [BLANK13] với nhu cầu của tôi.' },
+                    { speaker: 'Chủ nhà', text: 'Vậy chúng ta [BLANK14] giá 14 triệu rưỡi một tháng, [BLANK15] hai năm, đặt cọc ba tháng, được chứ?' },
+                    { speaker: 'Anna', text: 'Vâng, tôi đồng ý với điều kiện là hợp đồng ghi rõ các [BLANK16] về sửa chữa và [BLANK17] tiền đặt cọc.' },
+                    { speaker: 'Chủ nhà', text: 'Không vấn đề gì. Tôi sẽ chuẩn bị hợp đồng chi tiết để bạn xem trước khi ký.' },
+                    { speaker: 'Anna', text: 'Cảm ơn anh. Vì tôi muốn đảm bảo mọi thứ [BLANK18] nên tôi sẽ đọc kỹ trước khi [BLANK19].' }
                 ],
                 blanks: [
                     {
                         id: 'blank1',
-                        answer: 'Bạn dùng gì',
-                        translation: 'What would you like?',
-                        notes: 'Common way servers ask what you want to order. "Dùng" = to use/have/eat',
-                        politeness: 'polite',
-                        category: 'greeting'
+                        answer: 'căn hộ',
+                        translation: 'apartment / flat',
+                        notes: '"Căn hộ" = apartment. "Căn" is a classifier for housing units. Very common in urban rental contexts.',
+                        politeness: 'neutral',
+                        category: 'housing'
                     },
                     {
                         id: 'blank2',
-                        answer: 'Cho tôi một tô phở',
-                        translation: 'Give me one bowl of phở',
-                        notes: '"Cho tôi" = give me, "một tô" = one bowl. Very common ordering phrase',
+                        answer: 'tiền thuê',
+                        translation: 'rent / rental payment',
+                        notes: '"Tiền thuê" = rent. "Tiền" = money, "thuê" = to rent. "Tiền thuê mỗi tháng" = monthly rent.',
                         politeness: 'neutral',
-                        category: 'ordering'
+                        category: 'housing'
                     },
                     {
                         id: 'blank3',
-                        answer: 'Phở bò ạ',
-                        translation: 'Beef phở',
-                        notes: '"Phở bò" = beef phở, "phở gà" = chicken phở. "Ạ" adds politeness',
-                        politeness: 'polite',
-                        category: 'responding'
+                        answer: 'thương lượng',
+                        translation: 'to negotiate',
+                        notes: '"Thương lượng" = to negotiate. Used when discussing price or terms in rental, business, or purchasing contexts.',
+                        politeness: 'neutral',
+                        category: 'negotiation'
                     },
                     {
                         id: 'blank4',
-                        answer: 'Không cay nhé',
-                        translation: 'Not spicy please',
-                        notes: '"Cay" = spicy. "Nhé" is a soft request particle. Add "một chút" for "a little spicy"',
-                        politeness: 'polite',
-                        category: 'preference'
+                        answer: 'cố định',
+                        translation: 'fixed / set',
+                        notes: '"Cố định" = fixed/set. "Giá cố định" = fixed price. Opposite of "linh hoạt" (flexible).',
+                        politeness: 'neutral',
+                        category: 'description'
                     },
                     {
                         id: 'blank5',
-                        answer: 'Cảm ơn chị',
-                        translation: 'Thank you',
-                        notes: '"Chị" when thanking a woman, "anh" for a man. Shows respect to service staff',
-                        politeness: 'polite',
-                        category: 'gratitude'
+                        answer: 'ký hợp đồng',
+                        translation: 'to sign a contract',
+                        notes: '"Ký hợp đồng" = to sign a contract. "Ký" = to sign. This phrase captures the action of committing to the agreement.',
+                        politeness: 'neutral',
+                        category: 'legal'
+                    },
+                    {
+                        id: 'blank6',
+                        answer: 'thời hạn',
+                        translation: 'duration / term / period',
+                        notes: '"Thời hạn" = duration or term. "Thời hạn hợp đồng" = contract term. "Hai năm là thời hạn khá dài" = two years is quite a long term.',
+                        politeness: 'neutral',
+                        category: 'time'
+                    },
+                    {
+                        id: 'blank7',
+                        answer: 'đặt cọc',
+                        translation: 'to pay a deposit / security deposit',
+                        notes: '"Đặt cọc" = to put down a deposit. "Đặt cọc ba tháng" = three months as a deposit. Standard in Vietnamese rental agreements.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank8',
+                        answer: 'hợp lý',
+                        translation: 'reasonable / fair / sensible',
+                        notes: '"Hợp lý" = reasonable/fair. "Cũng hợp lý" = also makes sense / is also reasonable. Used to accept a proposal as fair.',
+                        politeness: 'neutral',
+                        category: 'evaluation'
+                    },
+                    {
+                        id: 'blank9',
+                        answer: 'chịu trách nhiệm',
+                        translation: 'to be responsible for / take responsibility',
+                        notes: '"Chịu trách nhiệm" = to be responsible for. Used to clarify accountability — e.g. for repairs or damages.',
+                        politeness: 'neutral',
+                        category: 'legal'
+                    },
+                    {
+                        id: 'blank10',
+                        answer: 'sửa chữa',
+                        translation: 'repair / to repair / maintenance',
+                        notes: '"Sửa chữa" = repair/fix. "Chịu trách nhiệm sửa chữa" = be responsible for repairs. "Chi phí sửa chữa" = repair costs.',
+                        politeness: 'neutral',
+                        category: 'housing'
+                    },
+                    {
+                        id: 'blank11',
+                        answer: 'chi phí',
+                        translation: 'cost / expense',
+                        notes: '"Chi phí" = cost/expense. "Chịu chi phí" = to bear/cover the cost. "Chi phí sửa chữa" = repair expenses.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank12',
+                        answer: 'ngân sách',
+                        translation: 'budget',
+                        notes: '"Ngân sách" = budget. "Cao so với ngân sách của tôi" = high compared to my budget. Used in both personal and business contexts.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank13',
+                        answer: 'phù hợp',
+                        translation: 'suitable / appropriate / fitting',
+                        notes: '"Phù hợp" = suitable/fitting. "Phù hợp với nhu cầu" = suits my needs. Very common when evaluating whether something meets requirements.',
+                        politeness: 'neutral',
+                        category: 'evaluation'
+                    },
+                    {
+                        id: 'blank14',
+                        answer: 'thống nhất',
+                        translation: 'to agree on / reach consensus',
+                        notes: '"Thống nhất" = to agree/reach consensus. "Chúng ta thống nhất" = we agree on. Used to confirm a mutual decision.',
+                        politeness: 'neutral',
+                        category: 'negotiation'
+                    },
+                    {
+                        id: 'blank15',
+                        answer: 'hợp đồng',
+                        translation: 'contract / agreement',
+                        notes: '"Hợp đồng" = contract/agreement. "Hợp đồng hai năm" = two-year contract. Always paired with "ký" (to sign) when signing.',
+                        politeness: 'neutral',
+                        category: 'legal'
+                    },
+                    {
+                        id: 'blank16',
+                        answer: 'điều khoản',
+                        translation: 'terms / clauses / conditions',
+                        notes: '"Điều khoản" = terms/clauses. "Ghi rõ các điều khoản" = clearly state the terms and conditions. Essential in any contract.',
+                        politeness: 'neutral',
+                        category: 'legal'
+                    },
+                    {
+                        id: 'blank17',
+                        answer: 'hoàn trả',
+                        translation: 'to refund / return (money)',
+                        notes: '"Hoàn trả" = to refund/return. "Hoàn trả tiền đặt cọc" = refund the deposit. An important clause in any rental contract.',
+                        politeness: 'neutral',
+                        category: 'finance'
+                    },
+                    {
+                        id: 'blank18',
+                        answer: 'minh bạch',
+                        translation: 'transparent / clear / open',
+                        notes: '"Minh bạch" = transparent/clear. "Đảm bảo mọi thứ minh bạch" = ensure everything is transparent. Used in legal and business contexts.',
+                        politeness: 'neutral',
+                        category: 'values'
+                    },
+                    {
+                        id: 'blank19',
+                        answer: 'quyết định cuối cùng',
+                        translation: 'final decision',
+                        notes: '"Quyết định cuối cùng" = final decision. "Trước khi quyết định cuối cùng" = before making the final decision.',
+                        politeness: 'neutral',
+                        category: 'decision'
                     }
                 ]
             },
@@ -970,295 +1092,572 @@
         }
 
         // ==================== SCENARIO PAGE ====================
-        
-        function ScenarioPage({ scenario, onBack }) {
-            const [activeTab, setActiveTab] = useState('simulate');
-            const [simulationComplete, setSimulationComplete] = useState(false);
-            const [simulationResults, setSimulationResults] = useState(null);
 
-            const handleSimulationComplete = (results) => {
-                setSimulationComplete(true);
-                setSimulationResults(results);
-                StorageManager.saveSimulation(scenario.id, results);
-            };
+        const STAGE_META = [
+            {
+                id: 'learn',
+                number: 1,
+                label: 'Learn',
+                emoji: '📚',
+                description: 'Read the full dialogue with all answers revealed. Study key phrases and their meanings.',
+                color: 'from-blue-500 to-blue-600',
+                lightBg: 'bg-blue-50',
+                border: 'border-blue-200',
+                badge: 'bg-blue-100 text-blue-700',
+                stepColor: 'bg-blue-600',
+            },
+            {
+                id: 'practice',
+                number: 2,
+                label: 'Practice',
+                emoji: '✏️',
+                description: 'Multiple-choice flashcards for every blank. Pick the correct Vietnamese phrase.',
+                color: 'from-green-500 to-green-600',
+                lightBg: 'bg-green-50',
+                border: 'border-green-200',
+                badge: 'bg-green-100 text-green-700',
+                stepColor: 'bg-green-600',
+            },
+            {
+                id: 'test',
+                number: 3,
+                label: 'Test',
+                emoji: '🎯',
+                description: 'Fill in all the blanks from memory. Your answers are scored and saved.',
+                color: 'from-purple-500 to-purple-600',
+                lightBg: 'bg-purple-50',
+                border: 'border-purple-200',
+                badge: 'bg-purple-100 text-purple-700',
+                stepColor: 'bg-purple-600',
+            },
+            {
+                id: 'rebuild',
+                number: 4,
+                label: 'Rebuild',
+                emoji: '🧩',
+                description: 'Rearrange scrambled words to reconstruct each sentence in the correct order.',
+                color: 'from-teal-500 to-teal-600',
+                lightBg: 'bg-teal-50',
+                border: 'border-teal-200',
+                badge: 'bg-teal-100 text-teal-700',
+                stepColor: 'bg-teal-600',
+            },
+            {
+                id: 'listening',
+                number: 5,
+                label: 'Listening',
+                emoji: '🎧',
+                description: 'Listen to each sentence read aloud, then rebuild it from the word bank.',
+                color: 'from-pink-500 to-pink-600',
+                lightBg: 'bg-pink-50',
+                border: 'border-pink-200',
+                badge: 'bg-pink-100 text-pink-700',
+                stepColor: 'bg-pink-600',
+            },
+        ];
 
+        // ── STAGE CONFIGS (extended) ─────────────────────────────────────────
+        const STAGE_EXTENDED = {
+            learn:    { headerBg: 'bg-blue-600',   headerText: 'text-white', iconBg: 'bg-blue-100',   iconText: 'text-blue-600',   accentBar: 'bg-blue-500',  bullets: ['Full Dialogue with highlighted phrases', 'Vocabulary & phrase notes', 'Comprehension quiz'] },
+            practice: { headerBg: 'bg-green-600',  headerText: 'text-white', iconBg: 'bg-green-100',  iconText: 'text-green-700',  accentBar: 'bg-green-500', bullets: ['Fill in the blanks', 'Multiple-choice options', 'Instant feedback'] },
+            test:     { headerBg: 'bg-purple-600', headerText: 'text-white', iconBg: 'bg-purple-100', iconText: 'text-purple-700', accentBar: 'bg-purple-500',bullets: ['Type full answers from memory', 'Timed challenge', 'Score saved to your profile'] },
+            rebuild:  { headerBg: 'bg-orange-500', headerText: 'text-white', iconBg: 'bg-orange-100', iconText: 'text-orange-700', accentBar: 'bg-orange-500',bullets: ['Drag & arrange words', 'Reconstruct sentences', 'Build production fluency'] },
+            listening:{ headerBg: 'bg-pink-600',   headerText: 'text-white', iconBg: 'bg-pink-100',   iconText: 'text-pink-700',   accentBar: 'bg-pink-500',  bullets: ['Listen & reconstruct', 'Audio playback controls', 'Available after Stage 3'] },
+        };
+
+        const STAGE_SUBLABELS = {
+            learn:    'Context & Vocabulary',
+            practice: 'Multiple Choice',
+            test:     'Test Your Memory',
+            rebuild:  'Build Sentences',
+            listening:'Audio Practice',
+        };
+
+        // ── HORIZONTAL LEARNING PATH ─────────────────────────────────────────
+        function HorizontalLearningPath({ stages, selectedStageId, onSelectStage, completedStages, recommendedStageId }) {
             return (
-                <div>
-                    {/* Scenario Header */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <span className="text-5xl">{scenario.icon}</span>
-                                <div>
-                                    <h2 className="text-3xl font-bold text-gray-900">{scenario.title}</h2>
-                                    <p className="text-gray-600">{scenario.description}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={onBack}
-                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
-                            >
-                                ← Back
-                            </button>
-                        </div>
-                    </div>
+                <div className="flex items-stretch gap-0">
+                    {stages.map((stage, idx) => {
+                        const ext = STAGE_EXTENDED[stage.id] || {};
+                        const isCompleted = completedStages.has(stage.id);
+                        const isRecommended = stage.id === recommendedStageId;
+                        const isSelected = stage.id === selectedStageId;
 
-                    {/* Tabs */}
-                    <div className="bg-white rounded-xl shadow-lg mb-6">
-                        <div className="border-b border-gray-200">
-                            <nav className="flex">
-                                <button
-                                    onClick={() => setActiveTab('simulate')}
-                                    className={`tab-button px-8 py-4 font-semibold ${
-                                        activeTab === 'simulate' ? 'active' : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                >
-                                    🎭 SIMULATE
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('analyze')}
-                                    disabled={!simulationComplete}
-                                    className={`tab-button px-8 py-4 font-semibold ${
-                                        activeTab === 'analyze' 
-                                            ? 'active' 
-                                            : simulationComplete 
-                                                ? 'text-gray-600 hover:text-gray-900' 
-                                                : 'text-gray-400 cursor-not-allowed'
-                                    }`}
-                                >
-                                    📊 ANALYZE
-                                    {simulationComplete && <span className="ml-2 text-green-500">✓</span>}
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('train')}
-                                    className={`tab-button px-8 py-4 font-semibold ${
-                                        activeTab === 'train' ? 'active' : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                >
-                                    💪 TRAIN
-                                </button>
-                            </nav>
-                        </div>
+                        let statusLabel = 'Not Started';
+                        let statusDot = 'bg-gray-300';
+                        if (isCompleted)  { statusLabel = 'Completed';   statusDot = 'bg-emerald-500'; }
+                        else if (isSelected) { statusLabel = 'In Progress'; statusDot = 'bg-amber-400'; }
 
-                        {/* Tab Content */}
-                        <div className="p-8">
-                            {activeTab === 'simulate' && (
-                                <SimulateTab 
-                                    scenario={scenario} 
-                                    onComplete={handleSimulationComplete}
-                                />
-                            )}
-                            {activeTab === 'analyze' && simulationResults && (
-                                <AnalyzeTab 
-                                    scenario={scenario}
-                                    results={simulationResults}
-                                />
-                            )}
-                            {activeTab === 'train' && (
-                                <TrainTab scenario={scenario} />
-                            )}
-                        </div>
-                    </div>
+                        return (
+                            <React.Fragment key={stage.id}>
+                                <button
+                                    onClick={() => onSelectStage(stage.id)}
+                                    className={`flex-1 text-left rounded-xl border-2 overflow-hidden transition-all duration-200 focus:outline-none
+                                        ${isSelected
+                                            ? (isRecommended ? 'border-purple-500 shadow-lg' : 'border-indigo-500 shadow-md')
+                                            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'}`}
+                                    style={isSelected && isRecommended ? { boxShadow: '0 0 0 3px rgba(168,85,247,0.2), 0 4px 20px rgba(168,85,247,0.15)' } : {}}
+                                >
+                                    {/* Colored header strip */}
+                                    <div className={`px-3 py-2.5 ${isSelected ? ext.headerBg : 'bg-gray-100'} ${isSelected ? ext.headerText : 'text-gray-500'}`}>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                                                ${isSelected ? 'bg-white bg-opacity-30 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                                {stage.number}
+                                            </span>
+                                            <div>
+                                                <p className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-700'}`}>{stage.label}</p>
+                                                <p className={`text-xs leading-tight ${isSelected ? 'text-white text-opacity-80 opacity-80' : 'text-gray-400'}`}>{STAGE_SUBLABELS[stage.id]}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Body */}
+                                    <div className="bg-white px-3 py-3">
+                                        {/* Bullets */}
+                                        <ul className="space-y-1 mb-3">
+                                            {(ext.bullets || []).slice(0,2).map((b,i) => (
+                                                <li key={i} className="flex items-start gap-1.5">
+                                                    <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${isCompleted ? 'bg-emerald-400' : isSelected ? ext.accentBar : 'bg-gray-300'}`}/>
+                                                    <span className="text-xs text-gray-600 leading-snug">{b}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+
+                                        {/* Status row */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`w-2 h-2 rounded-full ${statusDot}`}/>
+                                                <span className="text-xs font-medium text-gray-500">{statusLabel}</span>
+                                            </div>
+                                            {isRecommended && !isCompleted && (
+                                                <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">★ Next</span>
+                                            )}
+                                        </div>
+
+                                        {/* Progress bar if in-progress */}
+                                        {isSelected && !isCompleted && (
+                                            <div className="mt-2 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full ${ext.accentBar}`} style={{ width: '30%' }} />
+                                            </div>
+                                        )}
+
+                                        {/* CTA if selected */}
+                                        {isSelected && (
+                                            <button className={`mt-3 w-full py-1.5 rounded-lg text-xs font-bold text-white transition
+                                                ${isRecommended ? 'bg-purple-600 hover:bg-purple-700' : ext.headerBg + ' hover:opacity-90'}`}>
+                                                Start Now →
+                                            </button>
+                                        )}
+                                    </div>
+                                </button>
+
+                                {/* Arrow connector */}
+                                {idx < stages.length - 1 && (
+                                    <div className="flex items-center justify-center w-6 flex-shrink-0 text-gray-300 text-lg font-light select-none">›</div>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </div>
             );
         }
 
-        // ==================== SIMULATE TAB ====================
-        
-        function SimulateTab({ scenario, onComplete }) {
-            const [dialogue, setDialogue] = useState(null);
-            const [userAnswers, setUserAnswers] = useState({});
-            const [submitted, setSubmitted] = useState(false);
-            const [startTime, setStartTime] = useState(null);
-            const [responseTimes, setResponseTimes] = useState({});
-            const [stage, setStage] = useState('learn'); // 'learn', 'practice', 'test'
-            const [currentBlankIndex, setCurrentBlankIndex] = useState(0);
-            const inputRefs = useRef({});
+        function ScenarioPage({ scenario, onBack }) {
+            const [activeStage, setActiveStage] = useState(null);
+            const [selectedOverviewStage, setSelectedOverviewStage] = useState('learn');
+            const [simulationResults, setSimulationResults] = useState(null);
+            const [completedStages] = useState(new Set());
 
-            useEffect(() => {
-                // Load dialogue
-                const dialogueData = SAMPLE_DIALOGUES[scenario.id] || SAMPLE_DIALOGUES['restaurant_order'];
-                setDialogue(dialogueData);
-                setStartTime(Date.now());
-            }, [scenario.id]);
+            const dialogue = SAMPLE_DIALOGUES[scenario.id] || SAMPLE_DIALOGUES['restaurant_order'];
 
-            const handleAnswerChange = (blankId, value) => {
-                if (!responseTimes[blankId]) {
-                    setResponseTimes(prev => ({
-                        ...prev,
-                        [blankId]: Date.now() - startTime
-                    }));
-                }
-                setUserAnswers(prev => ({
-                    ...prev,
-                    [blankId]: value
-                }));
+            const handleSimulationComplete = (results) => {
+                setSimulationResults(results);
+                StorageManager.saveSimulation(scenario.id, results);
             };
 
-            const normalizeVietnamese = (text) => {
-                return text.toLowerCase().trim().replace(/\s+/g, ' ');
+            const goToOverview = () => setActiveStage(null);
+
+            const STAGE_NAV = STAGE_META.map(s => ({ ...s }));
+            const recommendedStageId = STAGE_NAV.find(s => !completedStages.has(s.id))?.id || STAGE_NAV[STAGE_NAV.length - 1].id;
+            const completedCount = completedStages.size;
+            const totalCount = STAGE_META.length;
+            const progressPct = Math.round((completedCount / totalCount) * 100);
+
+            const EXTRA_STAGE_META = {
+                analyze: { emoji: '📊', number: '—', label: 'Analyze', badge: 'bg-orange-100 text-orange-700' },
+                train:   { emoji: '💪', number: '—', label: 'Train',   badge: 'bg-indigo-100 text-indigo-700' },
             };
 
-            const calculateSimilarity = (answer, correct) => {
-                const a = normalizeVietnamese(answer);
-                const c = normalizeVietnamese(correct);
-                
-                if (a === c) return 1.0;
-                
-                const aWords = a.split(' ');
-                const cWords = c.split(' ');
-                const matches = aWords.filter(word => cWords.includes(word)).length;
-                
-                return matches / Math.max(aWords.length, cWords.length);
+            const renderStageHeader = (stageMeta) => {
+                const m = stageMeta || EXTRA_STAGE_META[activeStage] || { emoji: '', number: '', label: activeStage, badge: 'bg-gray-100 text-gray-700' };
+                return (
+                    <div className="flex items-center justify-between mb-6">
+                        <button onClick={goToOverview} className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium">
+                            <span>←</span><span>Scene Overview</span>
+                        </button>
+                        <div className="flex items-center space-x-3">
+                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${m.badge}`}>
+                                {m.emoji} {m.number !== '—' ? `Stage ${m.number} of 5` : m.emoji}
+                            </span>
+                            <span className="text-xl font-bold text-gray-800">{m.label}</span>
+                        </div>
+                    </div>
+                );
             };
 
-            const handleSubmit = () => {
-                if (!dialogue) return;
-
-                let totalCorrect = 0;
-                let totalPolite = 0;
-                let politeCorrect = 0;
-                const blankResults = [];
-
-                dialogue.blanks.forEach(blank => {
-                    const userAnswer = userAnswers[blank.id] || '';
-                    const similarity = calculateSimilarity(userAnswer, blank.answer);
-                    const correct = similarity >= 0.8;
-
-                    if (correct) totalCorrect++;
-                    if (blank.politeness === 'polite') {
-                        totalPolite++;
-                        if (correct) politeCorrect++;
-                    }
-
-                    blankResults.push({
-                        blankId: blank.id,
-                        correct,
-                        similarity,
-                        responseTime: responseTimes[blank.id] || 0
-                    });
-
-                    StorageManager.savePhraseProgress(
-                        `${scenario.id}_${blank.id}`,
-                        {
-                            correct,
-                            similarity,
-                            phrase: blank.answer,
-                            translation: blank.translation,
-                            scenario: scenario.id
-                        }
-                    );
-                });
-
-                const avgResponseTime = Object.values(responseTimes).reduce((a, b) => a + b, 0) / Object.keys(responseTimes).length;
-                const politenessAccuracy = totalPolite > 0 ? (politeCorrect / totalPolite) * 100 : 0;
-                const overallAccuracy = (totalCorrect / dialogue.blanks.length) * 100;
-
-                const results = {
-                    accuracy: overallAccuracy,
-                    avgResponseTime: Math.round(avgResponseTime / 1000),
-                    politenessAccuracy: Math.round(politenessAccuracy),
-                    blanks: blankResults
-                };
-
-                // Update weekly stats
-                const currentStats = StorageManager.getWeeklyStats();
-                StorageManager.updateWeeklyStats({
-                    scenariosCompleted: currentStats.scenariosCompleted + 1,
-                    avgResponseTime: Math.round((currentStats.avgResponseTime + results.avgResponseTime) / 2),
-                    politenessAccuracy: Math.round((currentStats.politenessAccuracy + results.politenessAccuracy) / 2)
-                });
-
-                setSubmitted(true);
-                onComplete(results);
-            };
-
-            const handleNextStage = () => {
-                if (stage === 'learn') {
-                    setStage('practice');
-                    setCurrentBlankIndex(0);
-                    setUserAnswers({});
-                } else if (stage === 'practice') {
-                    setStage('test');
-                    setUserAnswers({});
-                    setStartTime(Date.now());
-                } else if (stage === 'test') {
-                    setStage('rebuild');
-                }
-            };
-
-            const handlePracticeAnswer = (blankId, selectedAnswer, correctAnswer) => {
-                const correct = normalizeVietnamese(selectedAnswer) === normalizeVietnamese(correctAnswer);
-                
-                setUserAnswers(prev => ({
-                    ...prev,
-                    [blankId]: selectedAnswer
-                }));
-
-                // Auto-advance after selection
-                setTimeout(() => {
-                    if (currentBlankIndex < dialogue.blanks.length - 1) {
-                        setCurrentBlankIndex(prev => prev + 1);
-                    }
-                }, 1500);
-            };
-
-            if (!dialogue) {
-                return <div className="text-center py-12">Loading dialogue...</div>;
-            }
-
-            // STAGE 1: LEARN - Show full dialogue with all answers
-            if (stage === 'learn') {
+            // ── ACTIVE STAGE CONTENT ──────────────────────────────────────────
+            if (activeStage) {
+                const meta = STAGE_META.find(s => s.id === activeStage);
                 return (
                     <div>
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-gray-900">📚 Stage 1: Learn</h3>
-                                    <p className="text-gray-600">Read through the complete conversation and learn the key phrases</p>
+                        {renderStageHeader(meta)}
+                        {activeStage === 'learn' && <LearnStage dialogue={dialogue} onGoToStage={setActiveStage} />}
+                        {activeStage === 'practice' && <PracticeStage dialogue={dialogue} onGoToStage={setActiveStage} />}
+                        {activeStage === 'test' && <TestStage scenario={scenario} dialogue={dialogue} onComplete={handleSimulationComplete} onGoToStage={setActiveStage} />}
+                        {activeStage === 'rebuild' && <RebuildStage dialogue={dialogue} onBack={goToOverview} onRestart={goToOverview} onNextStage={() => setActiveStage('listening')} />}
+                        {activeStage === 'listening' && <ListeningStage dialogue={dialogue} onBack={goToOverview} onRestart={goToOverview} />}
+                        {activeStage === 'analyze' && (
+                            <div className="bg-white rounded-xl shadow-lg p-8">
+                                {simulationResults ? <AnalyzeTab scenario={scenario} results={simulationResults} /> : (
+                                    <div className="text-center py-16">
+                                        <div className="text-6xl mb-4">📊</div>
+                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">No results yet</h3>
+                                        <p className="text-gray-500 mb-6">Complete Stage 3 (Test) to see your performance analysis here.</p>
+                                        <button onClick={() => setActiveStage('test')} className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition">Go to Stage 3: Test →</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {activeStage === 'train' && <div className="bg-white rounded-xl shadow-lg p-8"><TrainTab scenario={scenario} /></div>}
+                    </div>
+                );
+            }
+
+            // ── SCENE OVERVIEW ────────────────────────────────────────────────
+            const selMeta = STAGE_META.find(s => s.id === selectedOverviewStage);
+            const selExt  = STAGE_EXTENDED[selectedOverviewStage] || {};
+
+            return (
+                <div className="space-y-5">
+
+                    {/* ══ SCENE HEADER ══ */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        {/* Top row */}
+                        <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-4 min-w-0">
+                                <div className="w-14 h-14 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-3xl flex-shrink-0">
+                                    {scenario.icon}
                                 </div>
-                                <div className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold">
-                                    Step 1 of 5
+                                <div className="min-w-0">
+                                    <h2 className="text-2xl font-bold text-gray-900 leading-tight">{scenario.title}</h2>
+                                    <p className="text-sm text-gray-500 mt-0.5">{scenario.description}</p>
+                                </div>
+                            </div>
+                            {/* Meta chips */}
+                            <div className="flex items-center gap-6 flex-shrink-0">
+                                <div className="text-center">
+                                    <p className="text-xs text-gray-400 flex items-center gap-1 justify-center">⏱ Estimated Time</p>
+                                    <p className="text-base font-bold text-gray-800">{scenario.estimatedTime}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-xs text-gray-400">Your Level</p>
+                                    <p className="text-base font-bold text-amber-600 capitalize">{scenario.difficulty}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-xs text-gray-400 flex items-center gap-1 justify-center">⏰ Last Practiced</p>
+                                    <p className="text-base font-bold text-gray-800">—</p>
+                                </div>
+                                <button onClick={onBack} className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition flex-shrink-0">
+                                    ← Back
+                                </button>
+                            </div>
+                        </div>
+                        {/* Progress bar strip */}
+                        <div className="px-6 pb-4">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">Overall Progress: <span className="text-indigo-600">{progressPct}% Complete</span></span>
+                                <div className="flex-1 bg-gray-100 rounded-full h-2.5 max-w-sm">
+                                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-700" style={{ width: `${progressPct}%` }} />
+                                </div>
+                                <span className="text-xs text-gray-400">{completedCount}/{totalCount} stages</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ══ SCENE LEARNING PATH ══ */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-lg">🎯</span>
+                            <div>
+                                <h3 className="text-base font-bold text-gray-900">Scene Learning Path</h3>
+                                <p className="text-xs text-gray-400">Master this scenario through {totalCount} interactive stages</p>
+                            </div>
+                        </div>
+                        <HorizontalLearningPath
+                            stages={STAGE_NAV}
+                            selectedStageId={selectedOverviewStage}
+                            onSelectStage={setSelectedOverviewStage}
+                            completedStages={completedStages}
+                            recommendedStageId={recommendedStageId}
+                        />
+                    </div>
+
+                    {/* ══ BOTTOM SECTION: Left sidebar + Center + Right sidebar ══ */}
+                    <div className="grid grid-cols-12 gap-5">
+
+                        {/* LEFT: Stage Details + Quick Actions */}
+                        <div className="col-span-3 space-y-4">
+                            {/* Stage Details list */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span>📋</span> Stage Details
+                                </h4>
+                                <div className="space-y-1">
+                                    {STAGE_META.map(stage => {
+                                        const isCompleted = completedStages.has(stage.id);
+                                        const isSelected  = stage.id === selectedOverviewStage;
+                                        const ext2 = STAGE_EXTENDED[stage.id] || {};
+                                        return (
+                                            <button
+                                                key={stage.id}
+                                                onClick={() => setSelectedOverviewStage(stage.id)}
+                                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-150
+                                                    ${isSelected ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                                            >
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm flex-shrink-0
+                                                        ${isCompleted ? 'bg-emerald-500 text-white' : isSelected ? ext2.iconBg + ' ' + ext2.iconText : 'bg-gray-100 text-gray-500'}`}>
+                                                        {isCompleted ? '✓' : stage.emoji}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-indigo-700' : 'text-gray-800'}`}>{stage.label}</p>
+                                                        <p className={`text-xs leading-tight mt-0.5 ${isCompleted ? 'text-emerald-600' : isSelected ? 'text-amber-500' : 'text-gray-400'}`}>
+                                                            {isCompleted ? '✓ Completed' : isSelected ? '● In Progress' : '○ Not Started'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-gray-300 text-sm flex-shrink-0">›</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span>🔥</span> Quick Actions
+                                </h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { emoji: '🃏', label: 'Flashcards', sub: 'Review phrases' },
+                                        { emoji: '⚡', label: 'Speed Test', sub: '5 min challenge' },
+                                        { emoji: '❌', label: 'Wrong Answers', sub: 'Focus practice' },
+                                        { emoji: '📄', label: 'Download PDF', sub: 'Full transcript' },
+                                    ].map(qa => (
+                                        <button key={qa.label} className="flex flex-col items-center text-center p-2 rounded-lg bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 border border-transparent transition-all duration-150">
+                                            <span className="text-xl mb-1">{qa.emoji}</span>
+                                            <p className="text-xs font-semibold text-gray-700 leading-tight">{qa.label}</p>
+                                            <p className="text-xs text-gray-400 leading-tight">{qa.sub}</p>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
-                            <p className="text-lg text-gray-700 mb-2">
-                                <strong>Context:</strong> {dialogue.context}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                                💡 Pay attention to the <strong className="text-indigo-600">highlighted phrases</strong> - you'll practice these next!
-                            </p>
+                        {/* CENTER: Selected stage detail panel */}
+                        <div className="col-span-6">
+                            {selMeta && (
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-full animate-slide-in">
+                                    {/* Panel header */}
+                                    <div className={`px-5 py-4 ${selExt.headerBg} ${selExt.headerText}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-lg">
+                                                {selMeta.emoji}
+                                            </div>
+                                            <div>
+                                                <p className="text-white text-opacity-80 text-xs font-medium opacity-80">Stage {selMeta.number} of {totalCount}</p>
+                                                <h4 className="text-white font-bold text-base leading-tight">What's Inside: {selMeta.label} Stage</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Content items */}
+                                    <div className="p-5 space-y-2">
+                                        {(selExt.bullets || [selMeta.description]).map((bullet, i) => (
+                                            <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg ${selExt.iconBg} ${selExt.iconText} flex items-center justify-center text-sm flex-shrink-0`}>
+                                                        {['📖','📝','❓'][i] || '•'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-800">{bullet}</p>
+                                                        <p className="text-xs text-gray-400">{['With highlighted phrases','Meanings & examples','Test your understanding'][i] || ''}</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-gray-300 text-lg flex-shrink-0">›</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Scene Context */}
+                                    <div className="mx-5 mb-4 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Scene Context</p>
+                                        <p className="text-sm text-gray-600 leading-relaxed">{dialogue.context}</p>
+                                    </div>
+
+                                    {/* CTA */}
+                                    <div className="px-5 pb-5">
+                                        <button
+                                            onClick={() => setActiveStage(selectedOverviewStage)}
+                                            className={`w-full py-3 rounded-xl text-white font-bold text-sm transition-all duration-150 ${selExt.headerBg} hover:opacity-90 shadow-sm`}
+                                        >
+                                            Continue to {selMeta.label} →
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Full Dialogue with Highlights */}
-                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
-                            <h4 className="text-lg font-bold text-gray-900 mb-6">Complete Conversation</h4>
-                            <div className="space-y-4">
-                                {dialogue.dialogue.map((line, index) => {
-                                    const parts = line.text.split(/(\[BLANK\d+\])/g);
-                                    
-                                    return (
-                                        <div key={index} className="flex items-start space-x-3">
+                        {/* RIGHT: Performance + Recommended */}
+                        <div className="col-span-3 space-y-4">
+                            {/* Your Performance */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                    <span>📊</span> Your Performance
+                                </h4>
+                                {/* Donut + stats */}
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="relative w-16 h-16 flex-shrink-0">
+                                        <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" strokeWidth="3"/>
+                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6366f1" strokeWidth="3"
+                                                strokeDasharray={`${progressPct} ${100 - progressPct}`} strokeLinecap="round"/>
+                                        </svg>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span className="text-xs font-bold text-gray-800">{progressPct}%</span>
+                                            <span className="text-xs text-gray-400" style={{fontSize:'7px'}}>Mastery</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div>
+                                            <p className="text-xs text-gray-400">Phrases</p>
+                                            <p className="text-sm font-bold text-gray-800">{completedCount * 3}<span className="text-gray-400 font-normal">/{totalCount * 3}</span></p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Avg. Accuracy</p>
+                                            <p className="text-sm font-bold text-gray-800">—%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setActiveStage('analyze')}
+                                    className="w-full text-xs font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-100 hover:border-indigo-300 rounded-lg py-2 transition-all">
+                                    View Detailed Analytics ›
+                                </button>
+                            </div>
+
+                            {/* Recommended Next */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span>💡</span> Recommended Next
+                                </h4>
+                                <div className="space-y-2">
+                                    {/* Primary: recommended stage */}
+                                    {(() => {
+                                        const rec = STAGE_META.find(s => s.id === recommendedStageId);
+                                        const recExt = STAGE_EXTENDED[recommendedStageId] || {};
+                                        return rec ? (
+                                            <div className="border border-purple-200 bg-purple-50 rounded-xl p-3">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-8 h-8 rounded-lg ${recExt.iconBg} ${recExt.iconText} flex items-center justify-center text-sm`}>{rec.emoji}</div>
+                                                        <div>
+                                                            <p className="text-xs font-bold text-gray-800">{rec.label}</p>
+                                                            <p className="text-xs text-gray-500">{STAGE_SUBLABELS[rec.id]}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">Priority</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setActiveStage(recommendedStageId)}
+                                                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">
+                                                    Start Now →
+                                                </button>
+                                            </div>
+                                        ) : null;
+                                    })()}
+
+                                    {/* Analyze */}
+                                    <button onClick={() => setActiveStage('analyze')} className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 transition text-left border border-transparent hover:border-gray-200">
+                                        <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-sm flex-shrink-0">📈</div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-semibold text-gray-800">Analyze</p>
+                                            <p className="text-xs text-gray-400 truncate">Review your test results</p>
+                                        </div>
+                                        <span className="text-xs text-amber-500 font-medium whitespace-nowrap flex-shrink-0">After Test</span>
+                                    </button>
+
+                                    {/* Train */}
+                                    <button onClick={() => setActiveStage('train')} className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 transition text-left border border-transparent hover:border-gray-200">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-sm flex-shrink-0">💪</div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-semibold text-gray-800">Train Weak Phrases</p>
+                                            <p className="text-xs text-gray-400 truncate">Boost low-confidence items</p>
+                                        </div>
+                                        <span className="text-xs text-gray-400 font-medium flex-shrink-0">SRS</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
+        // ==================== STAGE 1: LEARN ====================
+
+        function LearnStage({ dialogue, onGoToStage }) {
+            return (
+                <div>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">📚 Stage 1: Learn</h3>
+                                <p className="text-gray-600">Read the full dialogue — all answers are shown. Study each key phrase carefully.</p>
+                            </div>
+                            <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold">
+                                Step 1 of 5
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+                        <p className="text-lg text-gray-700 mb-2">
+                            <strong>Context:</strong> {dialogue.context}
+                        </p>
+                    </div>
+
+                    {/* Full dialogue with answers revealed */}
+                    <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
+                        <div className="space-y-4">
+                            {dialogue.dialogue.map((line, index) => {
+                                const parts = line.text.split(/(\[BLANK\d+\])/g);
+                                return (
+                                    <div key={index} className="mb-4 animate-slide-in">
+                                        <div className="flex items-start space-x-3">
                                             <div className="flex-shrink-0 w-28">
-                                                <span className={`text-sm font-semibold ${
-                                                    line.speaker === 'Bạn' ? 'text-indigo-600' : 'text-gray-700'
-                                                }`}>
-                                                    {line.speaker}:
-                                                </span>
+                                                <span className="text-sm font-semibold text-gray-700">{line.speaker}:</span>
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-lg leading-relaxed">
                                                     {parts.map((part, i) => {
                                                         const blankMatch = part.match(/\[BLANK(\d+)\]/);
                                                         if (blankMatch) {
-                                                            const blankNum = blankMatch[1];
-                                                            const blankId = `blank${blankNum}`;
-                                                            const blank = dialogue.blanks.find(b => b.id === blankId);
-                                                            
+                                                            const blank = dialogue.blanks.find(b => b.id === `blank${blankMatch[1]}`);
                                                             if (!blank) return null;
-
                                                             return (
                                                                 <span key={i} className="inline">
                                                                     <strong className="text-indigo-600 bg-indigo-100 px-2 py-1 rounded">
@@ -1272,256 +1671,345 @@
                                                 </p>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Key Phrases Reference */}
-                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
-                            <h4 className="text-lg font-bold text-gray-900 mb-4">🎯 Key Phrases to Remember</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {dialogue.blanks.map((blank, index) => (
-                                    <div key={blank.id} className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <span className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                                {index + 1}
-                                            </span>
-                                            <span className="px-2 py-1 bg-purple-200 text-purple-700 rounded text-xs font-semibold">
-                                                {blank.category}
-                                            </span>
-                                        </div>
-                                        <p className="text-lg font-bold text-indigo-900 mb-1">{blank.answer}</p>
-                                        <p className="text-sm text-gray-700 mb-2">
-                                            <strong>Meaning:</strong> {blank.translation}
-                                        </p>
-                                        <p className="text-xs text-gray-600">{blank.notes}</p>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <button
-                                onClick={handleNextStage}
-                                className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center space-x-2"
-                            >
-                                <span>I've learned these phrases</span>
-                                <span>→</span>
-                            </button>
+                                );
+                            })}
                         </div>
                     </div>
-                );
-            }
 
-            // STAGE 2: PRACTICE - Multiple choice for each phrase
-            if (stage === 'practice') {
-                const currentBlank = dialogue.blanks[currentBlankIndex];
-                const userAnswer = userAnswers[currentBlank.id];
-                const hasAnswered = userAnswer !== undefined;
-                const isCorrect = hasAnswered && normalizeVietnamese(userAnswer) === normalizeVietnamese(currentBlank.answer);
+                    {/* Key Phrases Reference */}
+                    <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 p-8 mb-6">
+                        <h4 className="text-lg font-bold text-gray-900 mb-4">🎯 Key Phrases to Remember</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {dialogue.blanks.map((blank, index) => (
+                                <div key={blank.id} className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <span className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                            {index + 1}
+                                        </span>
+                                        <span className="px-2 py-1 bg-purple-200 text-purple-700 rounded text-xs font-semibold">
+                                            {blank.category}
+                                        </span>
+                                    </div>
+                                    <p className="text-lg font-bold text-indigo-900 mb-1">{blank.answer}</p>
+                                    <p className="text-sm text-gray-700 mb-2">
+                                        <strong>Meaning:</strong> {blank.translation}
+                                    </p>
+                                    <p className="text-xs text-gray-600">{blank.notes}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-                // Generate wrong answers (simplified - in production, use more sophisticated distractors)
-                const generateChoices = (correctAnswer) => {
-                    const otherBlanks = dialogue.blanks.filter(b => b.id !== currentBlank.id);
-                    const choices = [correctAnswer];
-                    
-                    // Add 2-3 wrong answers from other blanks
-                    for (let i = 0; i < Math.min(2, otherBlanks.length); i++) {
-                        choices.push(otherBlanks[i].answer);
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => onGoToStage('practice')}
+                            className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center space-x-2"
+                        >
+                            <span>Ready to Practice</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== STAGE 2: PRACTICE ====================
+
+        function PracticeStage({ dialogue, onGoToStage }) {
+            const [currentBlankIndex, setCurrentBlankIndex] = useState(0);
+            const [userAnswers, setUserAnswers] = useState({});
+
+            const normalizeVietnamese = (text) => text.toLowerCase().trim().replace(/\s+/g, ' ');
+
+            const handlePracticeAnswer = (blankId, selectedAnswer) => {
+                setUserAnswers(prev => ({ ...prev, [blankId]: selectedAnswer }));
+                setTimeout(() => {
+                    if (currentBlankIndex < dialogue.blanks.length - 1) {
+                        setCurrentBlankIndex(prev => prev + 1);
                     }
-                    
-                    // Shuffle
-                    return choices.sort(() => Math.random() - 0.5);
+                }, 1500);
+            };
+
+            const currentBlank = dialogue.blanks[currentBlankIndex];
+            const userAnswer = userAnswers[currentBlank.id];
+            const hasAnswered = userAnswer !== undefined;
+            const isCorrect = hasAnswered && normalizeVietnamese(userAnswer) === normalizeVietnamese(currentBlank.answer);
+            const allPracticeComplete = currentBlankIndex === dialogue.blanks.length - 1 && hasAnswered;
+
+            // Find the line that contains this blank
+            const blankTag = `[BLANK${currentBlankIndex + 1}]`;
+            const speakerLine = dialogue.dialogue.find(l => l.text.includes(blankTag));
+            const speakerName = speakerLine ? speakerLine.speaker : null;
+            const gappedSentence = speakerLine
+                ? speakerLine.text.replace(/\[BLANK\d+\]/g, '___________')
+                : '';
+
+            // Choices
+            const generateChoices = (correct) => {
+                const others = dialogue.blanks.filter(b => b.id !== currentBlank.id);
+                const pool = [...others].sort(() => Math.random() - 0.5);
+                const distractors = [];
+                const seen = new Set([normalizeVietnamese(correct)]);
+                for (const b of pool) {
+                    if (distractors.length >= 2) break;
+                    const norm = normalizeVietnamese(b.answer);
+                    if (!seen.has(norm)) { seen.add(norm); distractors.push(b.answer); }
+                }
+                return [correct, ...distractors].sort(() => Math.random() - 0.5);
+            };
+
+            const choices = React.useMemo(
+                () => generateChoices(currentBlank.answer),
+                [currentBlankIndex]
+            );
+
+            return (
+                <div>
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">✏️ Stage 2: Practice</h3>
+                                <p className="text-gray-600">Choose the correct Vietnamese phrase for each blank</p>
+                            </div>
+                            <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
+                                Step 2 of 5
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${((currentBlankIndex + (hasAnswered ? 1 : 0)) / dialogue.blanks.length) * 100}%` }}
+                                />
+                            </div>
+                            <span className="text-sm font-medium text-gray-600">
+                                {currentBlankIndex + 1} / {dialogue.blanks.length}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
+                        <div className="flex items-center space-x-2 mb-5">
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                                {currentBlank.category}
+                            </span>
+                            {speakerName && (
+                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                    {speakerName}
+                                </span>
+                            )}
+                        </div>
+
+                        <p className="text-gray-500 text-sm font-medium mb-3">Fill in the blank:</p>
+                        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl px-6 py-5 mb-6">
+                            <p className="text-xl leading-relaxed text-gray-800 font-medium">
+                                {gappedSentence.split('___________').map((part, i, arr) => (
+                                    <React.Fragment key={i}>
+                                        {part}
+                                        {i < arr.length - 1 && (
+                                            <span className={`inline-block mx-1 px-3 py-0.5 rounded font-bold text-xl border-b-2 min-w-[80px] text-center transition-colors ${
+                                                hasAnswered
+                                                    ? isCorrect
+                                                        ? 'text-green-700 border-green-500 bg-green-100'
+                                                        : 'text-red-700 border-red-500 bg-red-100'
+                                                    : 'text-indigo-400 border-indigo-400 bg-white'
+                                            }`}>
+                                                {hasAnswered ? userAnswer : '?'}
+                                            </span>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {choices.map((choice, idx) => {
+                                const isSelected = userAnswer === choice;
+                                const isCorrectChoice = normalizeVietnamese(choice) === normalizeVietnamese(currentBlank.answer);
+                                let cls = 'w-full p-4 rounded-xl text-left transition-all border-2 ';
+                                if (!hasAnswered) {
+                                    cls += 'bg-gray-50 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer';
+                                } else if (isCorrectChoice) {
+                                    cls += 'bg-green-100 border-green-500 cursor-default';
+                                } else if (isSelected) {
+                                    cls += 'bg-red-100 border-red-500 cursor-default';
+                                } else {
+                                    cls += 'bg-gray-100 border-gray-200 opacity-50 cursor-default';
+                                }
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => !hasAnswered && handlePracticeAnswer(currentBlank.id, choice)}
+                                        disabled={hasAnswered}
+                                        className={cls}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                                                    !hasAnswered ? 'bg-indigo-100 text-indigo-700' :
+                                                    isCorrectChoice ? 'bg-green-500 text-white' :
+                                                    isSelected ? 'bg-red-500 text-white' :
+                                                    'bg-gray-300 text-gray-500'
+                                                }`}>
+                                                    {String.fromCharCode(65 + idx)}
+                                                </span>
+                                                <span className="text-lg font-semibold text-gray-900">{choice}</span>
+                                            </div>
+                                            {hasAnswered && isCorrectChoice && <span className="text-2xl">✅</span>}
+                                            {hasAnswered && isSelected && !isCorrectChoice && <span className="text-2xl">❌</span>}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {hasAnswered && (
+                            <div className={`mt-5 p-4 rounded-xl border-2 animate-slide-in ${
+                                isCorrect ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'
+                            }`}>
+                                <p className={`font-bold mb-1 ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
+                                    {isCorrect ? '🎉 Correct!' : `❌ Answer: ${currentBlank.answer}`}
+                                </p>
+                                <p className="text-gray-700 text-sm">{currentBlank.notes}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-between">
+                        {currentBlankIndex > 0 && (
+                            <button
+                                onClick={() => setCurrentBlankIndex(prev => prev - 1)}
+                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
+                            >
+                                ← Previous
+                            </button>
+                        )}
+                        <div className="flex-1" />
+                        {hasAnswered && !allPracticeComplete && (
+                            <button
+                                onClick={() => setCurrentBlankIndex(prev => prev + 1)}
+                                className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+                            >
+                                Next →
+                            </button>
+                        )}
+                        {allPracticeComplete && (
+                            <button
+                                onClick={() => onGoToStage('test')}
+                                className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                            >
+                                Ready for the Test →
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== STAGE 3: TEST ====================
+
+        function TestStage({ scenario, dialogue, onComplete, onGoToStage }) {
+            const [userAnswers, setUserAnswers] = useState({});
+            const [submitted, setSubmitted] = useState(false);
+            const [startTime] = useState(Date.now());
+            const [responseTimes, setResponseTimes] = useState({});
+            const inputRefs = useRef({});
+
+            const normalizeVietnamese = (text) => text.toLowerCase().trim().replace(/\s+/g, ' ');
+
+            const calculateSimilarity = (answer, correct) => {
+                const a = normalizeVietnamese(answer);
+                const c = normalizeVietnamese(correct);
+                if (a === c) return 1.0;
+                const aWords = a.split(' ');
+                const cWords = c.split(' ');
+                const matches = aWords.filter(w => cWords.includes(w)).length;
+                return matches / Math.max(aWords.length, cWords.length);
+            };
+
+            const handleAnswerChange = (blankId, value) => {
+                if (!responseTimes[blankId]) {
+                    setResponseTimes(prev => ({ ...prev, [blankId]: Date.now() - startTime }));
+                }
+                setUserAnswers(prev => ({ ...prev, [blankId]: value }));
+            };
+
+            const handleSubmit = () => {
+                let totalCorrect = 0, totalPolite = 0, politeCorrect = 0;
+                const blankResults = [];
+
+                dialogue.blanks.forEach(blank => {
+                    const userAnswer = userAnswers[blank.id] || '';
+                    const similarity = calculateSimilarity(userAnswer, blank.answer);
+                    const correct = similarity >= 0.8;
+                    if (correct) totalCorrect++;
+                    if (blank.politeness === 'polite') { totalPolite++; if (correct) politeCorrect++; }
+                    blankResults.push({ blankId: blank.id, correct, similarity, responseTime: responseTimes[blank.id] || 0 });
+                    StorageManager.savePhraseProgress(`${scenario.id}_${blank.id}`, {
+                        correct, similarity,
+                        phrase: blank.answer,
+                        translation: blank.translation,
+                        scenario: scenario.id
+                    });
+                });
+
+                const rt = Object.values(responseTimes);
+                const avgResponseTime = rt.length ? rt.reduce((a, b) => a + b, 0) / rt.length : 0;
+                const results = {
+                    accuracy: (totalCorrect / dialogue.blanks.length) * 100,
+                    avgResponseTime: Math.round(avgResponseTime / 1000),
+                    politenessAccuracy: totalPolite > 0 ? Math.round((politeCorrect / totalPolite) * 100) : 0,
+                    blanks: blankResults
                 };
 
-                const choices = generateChoices(currentBlank.answer);
-                const allPracticeComplete = currentBlankIndex === dialogue.blanks.length - 1 && hasAnswered;
+                const currentStats = StorageManager.getWeeklyStats();
+                StorageManager.updateWeeklyStats({
+                    scenariosCompleted: currentStats.scenariosCompleted + 1,
+                    avgResponseTime: Math.round((currentStats.avgResponseTime + results.avgResponseTime) / 2),
+                    politenessAccuracy: Math.round((currentStats.politenessAccuracy + results.politenessAccuracy) / 2)
+                });
 
-                return (
-                    <div>
-                        <div className="mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-gray-900">✏️ Stage 2: Practice</h3>
-                                    <p className="text-gray-600">Choose the correct Vietnamese phrase for each situation</p>
-                                </div>
-                                <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
-                                    Step 2 of 5
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div 
-                                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                        style={{ width: `${((currentBlankIndex + (hasAnswered ? 1 : 0)) / dialogue.blanks.length) * 100}%` }}
-                                    />
-                                </div>
-                                <span className="text-sm font-medium text-gray-600">
-                                    {currentBlankIndex + 1} / {dialogue.blanks.length}
-                                </span>
-                            </div>
-                        </div>
+                setSubmitted(true);
+                onComplete(results);
+            };
 
-                        {/* Question Card */}
-                        <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
-                            {/* Category Badge */}
-                            <div className="mb-4">
-                                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-                                    {currentBlank.category}
-                                </span>
-                            </div>
+            const allFilled = dialogue.blanks.every(blank => userAnswers[blank.id]?.trim());
 
-                            {/* Question */}
-                            <div className="mb-6">
-                                <p className="text-gray-600 text-sm mb-2">How do you say in Vietnamese?</p>
-                                <p className="text-3xl font-bold text-gray-900 mb-4">{currentBlank.translation}</p>
-                                {currentBlank.politeness === 'polite' && (
-                                    <p className="text-sm text-indigo-600 bg-indigo-50 inline-block px-3 py-1 rounded">
-                                        💡 Remember to use polite form
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Multiple Choice Options */}
-                            <div className="space-y-3">
-                                {choices.map((choice, idx) => {
-                                    const isSelected = userAnswer === choice;
-                                    const isCorrectChoice = normalizeVietnamese(choice) === normalizeVietnamese(currentBlank.answer);
-                                    
-                                    let buttonStyle = 'bg-gray-50 border-2 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50';
-                                    if (hasAnswered) {
-                                        if (isCorrectChoice) {
-                                            buttonStyle = 'bg-green-100 border-2 border-green-500';
-                                        } else if (isSelected) {
-                                            buttonStyle = 'bg-red-100 border-2 border-red-500';
-                                        } else {
-                                            buttonStyle = 'bg-gray-100 border-2 border-gray-300 opacity-50';
-                                        }
-                                    }
-
-                                    return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => !hasAnswered && handlePracticeAnswer(currentBlank.id, choice, currentBlank.answer)}
-                                            disabled={hasAnswered}
-                                            className={`w-full p-4 rounded-lg text-left transition ${buttonStyle} ${
-                                                hasAnswered ? 'cursor-default' : 'cursor-pointer'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-lg font-medium">{choice}</span>
-                                                {hasAnswered && isCorrectChoice && (
-                                                    <span className="text-2xl">✅</span>
-                                                )}
-                                                {hasAnswered && isSelected && !isCorrectChoice && (
-                                                    <span className="text-2xl">❌</span>
-                                                )}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Explanation after answering */}
-                            {hasAnswered && (
-                                <div className={`mt-6 p-4 rounded-lg ${
-                                    isCorrect ? 'bg-green-50 border-2 border-green-200' : 'bg-orange-50 border-2 border-orange-200'
-                                }`}>
-                                    <p className={`font-semibold mb-2 ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
-                                        {isCorrect ? '🎉 Correct!' : '📚 Keep practicing!'}
-                                    </p>
-                                    <p className="text-gray-700 text-sm mb-1">
-                                        <strong>Notes:</strong> {currentBlank.notes}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Navigation */}
-                        <div className="flex justify-between">
-                            {currentBlankIndex > 0 && (
-                                <button
-                                    onClick={() => setCurrentBlankIndex(prev => prev - 1)}
-                                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                                >
-                                    ← Previous
-                                </button>
-                            )}
-                            <div className="flex-1"></div>
-                            {hasAnswered && !allPracticeComplete && (
-                                <button
-                                    onClick={() => setCurrentBlankIndex(prev => prev + 1)}
-                                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                                >
-                                    Next →
-                                </button>
-                            )}
-                            {allPracticeComplete && (
-                                <button
-                                    onClick={handleNextStage}
-                                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                                >
-                                    Ready for the Test →
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
-
-            // STAGE 3: TEST - Fill in the blanks (original implementation)
-
-            // STAGE 3: TEST - Fill in the blanks
             const renderDialogueLine = (line, index) => {
                 const parts = line.text.split(/(\[BLANK\d+\])/g);
-                
                 return (
                     <div key={index} className="mb-4 animate-slide-in">
                         <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0 w-28">
-                                <span className={`text-sm font-semibold ${
-                                    line.speaker === 'Bạn' ? 'text-indigo-600' : 'text-gray-700'
-                                }`}>
-                                    {line.speaker}:
-                                </span>
+                                <span className="text-sm font-semibold text-gray-700">{line.speaker}:</span>
                             </div>
                             <div className="flex-1">
                                 <p className="text-lg leading-relaxed">
                                     {parts.map((part, i) => {
                                         const blankMatch = part.match(/\[BLANK(\d+)\]/);
                                         if (blankMatch) {
-                                            const blankNum = blankMatch[1];
-                                            const blankId = `blank${blankNum}`;
+                                            const blankId = `blank${blankMatch[1]}`;
                                             const blank = dialogue.blanks.find(b => b.id === blankId);
-                                            
                                             if (!blank) return null;
-
                                             const userAnswer = userAnswers[blankId] || '';
                                             const similarity = submitted ? calculateSimilarity(userAnswer, blank.answer) : 0;
                                             const isCorrect = similarity >= 0.8;
-
                                             return (
                                                 <span key={i} className="inline-block mx-1">
                                                     <input
                                                         ref={el => inputRefs.current[blankId] = el}
                                                         type="text"
                                                         value={userAnswer}
-                                                        onChange={(e) => handleAnswerChange(blankId, e.target.value)}
+                                                        onChange={e => handleAnswerChange(blankId, e.target.value)}
                                                         disabled={submitted}
                                                         className={`blank-input px-3 py-1 min-w-[200px] rounded ${
-                                                            submitted 
-                                                                ? isCorrect 
-                                                                    ? 'correct' 
-                                                                    : 'incorrect'
-                                                                : ''
+                                                            submitted ? (isCorrect ? 'correct' : 'incorrect') : ''
                                                         }`}
                                                         placeholder="..."
                                                     />
                                                     {submitted && !isCorrect && (
-                                                        <div className="inline-block ml-2 text-green-600 font-medium">
-                                                            ✓ {blank.answer}
-                                                        </div>
+                                                        <span className="ml-2 text-green-600 font-medium">✓ {blank.answer}</span>
                                                     )}
                                                 </span>
                                             );
@@ -1535,42 +2023,26 @@
                 );
             };
 
-            // STAGE 4: REBUILD THE SENTENCE
-            if (stage === 'rebuild') {
-                return <RebuildStage dialogue={dialogue} onBack={() => setStage('test')} onNextStage={() => setStage('listening')} onRestart={() => { setStage('learn'); setUserAnswers({}); setSubmitted(false); setCurrentBlankIndex(0); setStartTime(Date.now()); }} />;
-            }
-
-            // STAGE 5: LISTENING MODE
-            if (stage === 'listening') {
-                return <ListeningStage dialogue={dialogue} onBack={() => setStage('rebuild')} onRestart={() => { setStage('learn'); setUserAnswers({}); setSubmitted(false); setCurrentBlankIndex(0); setStartTime(Date.now()); }} />;
-            }
-
-            if (!dialogue) {
-                return <div className="text-center py-12">Loading dialogue...</div>;
-            }
-
-            const allFilled = dialogue.blanks.every(blank => userAnswers[blank.id]?.trim());
-
-            // STAGE 3: TEST - Fill in the blanks
             return (
                 <div>
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h3 className="text-2xl font-bold text-gray-900">🎯 Stage 3: Test</h3>
-                                <p className="text-gray-600">Now fill in the blanks from memory - you've got this!</p>
+                                <p className="text-gray-600">Fill in the blanks from memory — you've got this!</p>
                             </div>
                             <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
                                 Step 3 of 5
                             </div>
                         </div>
                     </div>
+
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 mb-6">
                         <p className="text-lg text-gray-700 mb-2">
                             <strong>Context:</strong> {dialogue.context}
                         </p>
                         <p className="text-sm text-gray-600">
-                            💡 Type the Vietnamese phrases you learned. Don't worry about perfect spelling - we check for meaning!
+                            💡 Type the Vietnamese phrases you learned. Don't worry about perfect spelling — we check for meaning!
                         </p>
                     </div>
 
@@ -1582,58 +2054,39 @@
 
                     <div className="flex items-center justify-between border-t pt-6">
                         <button
-                            onClick={() => setStage('practice')}
+                            onClick={() => onGoToStage('practice')}
                             className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
                         >
                             ← Review Practice
                         </button>
-                        <div>
+                        <div className="flex items-center space-x-3">
                             {submitted && (
-                                <p className="text-sm text-green-600 mr-4 inline-block">
-                                    ✓ Responses recorded for spaced repetition!
-                                </p>
+                                <p className="text-sm text-green-600 font-medium">✓ Saved for spaced repetition!</p>
                             )}
-                        </div>
-                        <div className="flex space-x-3">
                             {!submitted ? (
                                 <button
                                     onClick={handleSubmit}
                                     disabled={!allFilled}
                                     className={`px-8 py-3 rounded-lg font-semibold transition ${
-                                        allFilled
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        allFilled ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     }`}
                                 >
                                     Submit Test
                                 </button>
                             ) : (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setStage('learn');
-                                            setUserAnswers({});
-                                            setSubmitted(false);
-                                            setCurrentBlankIndex(0);
-                                            setStartTime(Date.now());
-                                        }}
-                                        className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                                    >
-                                        Practice Again
-                                    </button>
-                                    <button
-                                        onClick={() => setStage('rebuild')}
-                                        className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                                    >
-                                        Next: Rebuild →
-                                    </button>
-                                </>
+                                <button
+                                    onClick={() => onGoToStage('rebuild')}
+                                    className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+                                >
+                                    Next: Rebuild →
+                                </button>
                             )}
                         </div>
                     </div>
                 </div>
             );
         }
+
 
         // ==================== REBUILD STAGE ====================
 
