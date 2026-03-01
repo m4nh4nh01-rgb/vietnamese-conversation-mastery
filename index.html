@@ -1214,25 +1214,13 @@
 
                                     {/* Body */}
                                     <div className="bg-white px-3 py-3">
-                                        {/* Bullets */}
-                                        <ul className="space-y-1 mb-3">
-                                            {(ext.bullets || []).slice(0,2).map((b,i) => (
-                                                <li key={i} className="flex items-start gap-1.5">
-                                                    <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${isCompleted ? 'bg-emerald-400' : isSelected ? ext.accentBar : 'bg-gray-300'}`}/>
-                                                    <span className="text-xs text-gray-600 leading-snug">{b}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-
                                         {/* Status row */}
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
                                                 <span className={`w-2 h-2 rounded-full ${statusDot}`}/>
                                                 <span className="text-xs font-medium text-gray-500">{statusLabel}</span>
                                             </div>
-                                            {isRecommended && !isCompleted && (
-                                                <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">★ Next</span>
-                                            )}
+
                                         </div>
 
                                         {/* Progress bar if in-progress */}
@@ -1242,13 +1230,7 @@
                                             </div>
                                         )}
 
-                                        {/* CTA if selected */}
-                                        {isSelected && (
-                                            <button className={`mt-3 w-full py-1.5 rounded-lg text-xs font-bold text-white transition
-                                                ${isRecommended ? 'bg-purple-600 hover:bg-purple-700' : ext.headerBg + ' hover:opacity-90'}`}>
-                                                Start Now →
-                                            </button>
-                                        )}
+
                                     </div>
                                 </button>
 
@@ -1266,6 +1248,7 @@
         function ScenarioPage({ scenario, onBack }) {
             const [activeStage, setActiveStage] = useState(null);
             const [selectedOverviewStage, setSelectedOverviewStage] = useState('learn');
+            const [showSpeedTest, setShowSpeedTest] = useState(false);
             const [simulationResults, setSimulationResults] = useState(null);
             const [completedStages] = useState(new Set());
 
@@ -1376,11 +1359,10 @@
                         {/* Progress bar strip */}
                         <div className="px-6 pb-4">
                             <div className="flex items-center gap-3">
-                                <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">Overall Progress: <span className="text-indigo-600">{progressPct}% Complete</span></span>
                                 <div className="flex-1 bg-gray-100 rounded-full h-2.5 max-w-sm">
                                     <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-700" style={{ width: `${progressPct}%` }} />
                                 </div>
-                                <span className="text-xs text-gray-400">{completedCount}/{totalCount} stages</span>
+                                <span className="text-xs text-gray-400">{completedCount}/{totalCount} Stages Complete</span>
                             </div>
                         </div>
                     </div>
@@ -1406,68 +1388,9 @@
                     {/* ══ BOTTOM SECTION: Left sidebar + Center + Right sidebar ══ */}
                     <div className="grid grid-cols-12 gap-5">
 
-                        {/* LEFT: Stage Details + Quick Actions */}
-                        <div className="col-span-3 space-y-4">
-                            {/* Stage Details list */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                                    <span>📋</span> Stage Details
-                                </h4>
-                                <div className="space-y-1">
-                                    {STAGE_META.map(stage => {
-                                        const isCompleted = completedStages.has(stage.id);
-                                        const isSelected  = stage.id === selectedOverviewStage;
-                                        const ext2 = STAGE_EXTENDED[stage.id] || {};
-                                        return (
-                                            <button
-                                                key={stage.id}
-                                                onClick={() => setSelectedOverviewStage(stage.id)}
-                                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-150
-                                                    ${isSelected ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                                            >
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm flex-shrink-0
-                                                        ${isCompleted ? 'bg-emerald-500 text-white' : isSelected ? ext2.iconBg + ' ' + ext2.iconText : 'bg-gray-100 text-gray-500'}`}>
-                                                        {isCompleted ? '✓' : stage.emoji}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-indigo-700' : 'text-gray-800'}`}>{stage.label}</p>
-                                                        <p className={`text-xs leading-tight mt-0.5 ${isCompleted ? 'text-emerald-600' : isSelected ? 'text-amber-500' : 'text-gray-400'}`}>
-                                                            {isCompleted ? '✓ Completed' : isSelected ? '● In Progress' : '○ Not Started'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span className="text-gray-300 text-sm flex-shrink-0">›</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Quick Actions */}
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                                    <span>🔥</span> Quick Actions
-                                </h4>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { emoji: '🃏', label: 'Flashcards', sub: 'Review phrases' },
-                                        { emoji: '⚡', label: 'Speed Test', sub: '5 min challenge' },
-                                        { emoji: '❌', label: 'Wrong Answers', sub: 'Focus practice' },
-                                        { emoji: '📄', label: 'Download PDF', sub: 'Full transcript' },
-                                    ].map(qa => (
-                                        <button key={qa.label} className="flex flex-col items-center text-center p-2 rounded-lg bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 border border-transparent transition-all duration-150">
-                                            <span className="text-xl mb-1">{qa.emoji}</span>
-                                            <p className="text-xs font-semibold text-gray-700 leading-tight">{qa.label}</p>
-                                            <p className="text-xs text-gray-400 leading-tight">{qa.sub}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
 
                         {/* CENTER: Selected stage detail panel */}
-                        <div className="col-span-6">
+                        <div className="col-span-9">
                             {selMeta && (
                                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-full animate-slide-in">
                                     {/* Panel header */}
@@ -1499,12 +1422,6 @@
                                                 <span className="text-gray-300 text-lg flex-shrink-0">›</span>
                                             </div>
                                         ))}
-                                    </div>
-
-                                    {/* Scene Context */}
-                                    <div className="mx-5 mb-4 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Scene Context</p>
-                                        <p className="text-sm text-gray-600 leading-relaxed">{dialogue.context}</p>
                                     </div>
 
                                     {/* CTA */}
@@ -1545,10 +1462,7 @@
                                             <p className="text-xs text-gray-400">Phrases</p>
                                             <p className="text-sm font-bold text-gray-800">{completedCount * 3}<span className="text-gray-400 font-normal">/{totalCount * 3}</span></p>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-400">Avg. Accuracy</p>
-                                            <p className="text-sm font-bold text-gray-800">—%</p>
-                                        </div>
+
                                     </div>
                                 </div>
                                 <button
@@ -1580,15 +1494,14 @@
                                                     </div>
                                                     <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">Priority</span>
                                                 </div>
-                                                <button
-                                                    onClick={() => setActiveStage(recommendedStageId)}
-                                                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition">
-                                                    Start Now →
-                                                </button>
+
                                             </div>
                                         ) : null;
                                     })()}
 
+                                    {/* Analyze + Train — only shown after test completed */}
+                                    {simulationResults && (
+                                        <>
                                     {/* Analyze */}
                                     <button onClick={() => setActiveStage('analyze')} className="w-full flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 transition text-left border border-transparent hover:border-gray-200">
                                         <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-sm flex-shrink-0">📈</div>
@@ -1608,11 +1521,390 @@
                                         </div>
                                         <span className="text-xs text-gray-400 font-medium flex-shrink-0">SRS</span>
                                     </button>
+                                        </>
+                                    )}
                                 </div>
+                            </div>
+                            {/* Quick Actions */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <span>🔥</span> Quick Actions
+                                </h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { emoji: '🃏', label: 'Flashcards', sub: 'Review phrases', onClick: null },
+                                        { emoji: '⚡', label: 'Speed Test', sub: '5 min challenge', onClick: () => setShowSpeedTest(true) },
+                                        { emoji: '❌', label: 'Wrong Answers', sub: 'Focus practice', onClick: null },
+                                        { emoji: '📄', label: 'Download PDF', sub: 'Full transcript', onClick: null },
+                                    ].map(qa => (
+                                        <button key={qa.label} onClick={qa.onClick || undefined} className="flex flex-col items-center text-center p-2 rounded-lg bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 border border-transparent transition-all duration-150">
+                                            <span className="text-xl mb-1">{qa.emoji}</span>
+                                            <p className="text-xs font-semibold text-gray-700 leading-tight">{qa.label}</p>
+                                            <p className="text-xs text-gray-400 leading-tight">{qa.sub}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                                {showSpeedTest && <VietnameseSpeedTest onClose={() => setShowSpeedTest(false)} />}
                             </div>
                         </div>
                     </div>
 
+                </div>
+            );
+        }
+
+        // ==================== VIETNAMESE SPEED TEST ====================
+
+        const VIET_200_WORDS = [
+            'tôi','bạn','anh','chị','em','ông','bà','họ','chúng tôi','chúng ta',
+            'là','có','không','và','của','trong','cho','với','này','đó',
+            'một','hai','ba','bốn','năm','sáu','bảy','tám','chín','mười',
+            'được','làm','đi','đến','về','ra','vào','lên','xuống','qua',
+            'nói','nghe','thấy','biết','muốn','cần','phải','có thể','nên','hãy',
+            'nhà','trường','công việc','gia đình','bạn bè','thành phố','đất nước','thế giới','cuộc sống','thời gian',
+            'ăn','uống','ngủ','học','chơi','mua','bán','đọc','viết','hỏi',
+            'tốt','xấu','lớn','nhỏ','nhiều','ít','mới','cũ','đẹp','vui',
+            'hôm nay','ngày mai','hôm qua','bây giờ','sau này','trước đây','luôn luôn','thường xuyên','đôi khi','không bao giờ',
+            'rất','quá','cũng','còn','nữa','thôi','vì','nên','nhưng','mà',
+            'cảm ơn','xin lỗi','không có gì','vâng','dạ','không','được rồi','tạm biệt','xin chào','hẹn gặp lại',
+            'tiền','giá','rẻ','đắt','bao nhiêu','mấy','số','lần','lúc','khi',
+            'người','con','bố','mẹ','anh trai','chị gái','em trai','em gái','vợ','chồng',
+            'xe','đường','phố','quán','cửa hàng','bệnh viện','ngân hàng','khách sạn','sân bay','chợ',
+            'sách','bài','từ','câu','tiếng Việt','tiếng Anh','ngôn ngữ','văn hóa','lịch sử','địa lý',
+            'trời','nước','lửa','đất','gió','mưa','nắng','lạnh','nóng','ấm',
+            'đầu','tay','chân','mắt','tai','miệng','mũi','tim','bụng','lưng',
+            'đỏ','xanh','vàng','trắng','đen','xám','tím','cam','hồng','nâu',
+            'ăn sáng','ăn trưa','ăn tối','uống cà phê','đi làm','về nhà','đi ngủ','thức dậy','tắm rửa','mặc quần áo',
+        ];
+
+        function VietnameseSpeedTest({ onClose }) {
+            const { useState, useEffect, useRef, useMemo } = React;
+
+            const DURATION_OPTIONS = [
+                { label: '1 min',  value: 60   },
+                { label: '2 min',  value: 120  },
+                { label: '5 min',  value: 300  },
+                { label: '10 min', value: 600  },
+            ];
+            const ROW_HEIGHT = 44; // px — height of one word row, used for row-scroll
+
+            const wordList = useMemo(() => {
+                // Split every entry by whitespace so "hôm nay" → ["hôm", "nay"]
+                const tokens = VIET_200_WORDS.flatMap(w => w.split(/\s+/));
+                const flat = tokens.slice();
+                for (let i = flat.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [flat[i], flat[j]] = [flat[j], flat[i]];
+                }
+                // Repeat enough to always have plenty of words
+                const repeated = [...flat, ...flat, ...flat];
+                return repeated.slice(0, Math.max(400, repeated.length));
+            }, []);
+
+            const [selectedDuration, setSelectedDuration] = useState(60);
+            const [status, setStatus]           = useState('idle');
+            const [typedInput, setTypedInput]   = useState('');
+            const [wordIndex, setWordIndex]     = useState(0);
+            const [wordResults, setWordResults] = useState({});  // wi -> {correct, typed}
+            const [timeLeft, setTimeLeft]       = useState(60);
+            const [keystrokes, setKeystrokes]   = useState(0);
+            const [startTime, setStartTime]     = useState(null);
+            const [caretTick, setCaretTick]     = useState(true); // blinking caret
+
+            const inputRef         = useRef(null);
+            const timerRef         = useRef(null);
+            const caretTimerRef    = useRef(null);
+            const wordsContainerRef = useRef(null);
+            const wordRefs         = useRef({});
+
+            // Blink caret
+            useEffect(() => {
+                if (status === 'running') {
+                    caretTimerRef.current = setInterval(() => setCaretTick(t => !t), 530);
+                } else {
+                    clearInterval(caretTimerRef.current);
+                    setCaretTick(true);
+                }
+                return () => clearInterval(caretTimerRef.current);
+            }, [status]);
+
+            // Row-scroll: when active word moves to a new row, scroll that row to the top
+            useEffect(() => {
+                const el = wordRefs.current[wordIndex];
+                const container = wordsContainerRef.current;
+                if (!el || !container) return;
+                const wordTop = el.offsetTop;
+                // Scroll so the row containing the active word is at top of container
+                if (wordTop > container.scrollTop + ROW_HEIGHT) {
+                    container.scrollTop = wordTop - ROW_HEIGHT;
+                }
+            }, [wordIndex]);
+
+            const startTest = () => {
+                setStatus('running');
+                setStartTime(Date.now());
+                setTimeLeft(selectedDuration);
+                timerRef.current = setInterval(() => {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) { clearInterval(timerRef.current); setStatus('done'); return 0; }
+                        return prev - 1;
+                    });
+                }, 1000);
+                setTimeout(() => inputRef.current && inputRef.current.focus(), 30);
+            };
+
+            useEffect(() => () => { clearInterval(timerRef.current); clearInterval(caretTimerRef.current); }, []);
+
+            const handleInput = (e) => {
+                // Start test on very first keystroke (not on focus)
+                if (status === 'idle') {
+                    startTest();
+                }
+                if (status === 'done') return;
+                const val = e.target.value;
+
+                // Space = commit word
+                if (val.endsWith(' ')) {
+                    const typed = val.trimEnd();
+                    const correct = typed === wordList[wordIndex];
+                    setWordResults(prev => ({ ...prev, [wordIndex]: { typed, correct } }));
+                    setWordIndex(prev => prev + 1);
+                    setTypedInput('');
+                    setKeystrokes(prev => prev + typed.length + 1);
+                    return;
+                }
+
+                setTypedInput(val);
+                setKeystrokes(prev => prev + 1);
+            };
+
+            // Backspace on empty input = go back one word
+            const handleKeyDown = (e) => {
+                if (e.key === 'Backspace' && typedInput === '' && wordIndex > 0) {
+                    const prevIdx = wordIndex - 1;
+                    // Only allow going back if prev word was wrong
+                    if (wordResults[prevIdx] && !wordResults[prevIdx].correct) {
+                        setWordIndex(prevIdx);
+                        setTypedInput(wordResults[prevIdx].typed);
+                        setWordResults(prev => { const n = {...prev}; delete n[prevIdx]; return n; });
+                    }
+                }
+            };
+
+            const completedResults = Object.values(wordResults);
+            const correctWords = completedResults.filter(r => r.correct).length;
+            const wrongWords   = completedResults.filter(r => !r.correct).length;
+            const totalWords   = completedResults.length;
+            const wpm          = status === 'done'
+                ? Math.round(correctWords / (selectedDuration / 60))
+                : startTime ? Math.round(correctWords / Math.max((Date.now() - startTime) / 60000, 1/60)) : 0;
+            const accuracy     = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
+
+            const handleRetry = () => {
+                clearInterval(timerRef.current);
+                clearInterval(caretTimerRef.current);
+                setStatus('idle');
+                setTypedInput('');
+                setWordIndex(0);
+                setWordResults({});
+                setTimeLeft(selectedDuration);
+                setKeystrokes(0);
+                setStartTime(null);
+                setCaretTick(true);
+                if (wordsContainerRef.current) wordsContainerRef.current.scrollTop = 0;
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-white font-bold text-lg">⚡ Vietnamese Speed Test</h2>
+                                <p className="text-indigo-200 text-xs mt-0.5">200 most common Vietnamese words</p>
+                            </div>
+                            <button onClick={onClose} className="text-white text-opacity-70 hover:text-opacity-100 text-2xl leading-none transition">×</button>
+                        </div>
+
+                        <div className="p-6">
+
+                            {/* Stats bar */}
+                            <div className="grid grid-cols-4 gap-3 mb-5">
+                                {[
+                                    { label: 'WPM',        value: status === 'idle' ? '—' : wpm,           color: 'text-indigo-600' },
+                                    { label: 'Accuracy',   value: status === 'idle' ? '—' : accuracy+'%',  color: 'text-green-600' },
+                                    { label: 'Keystrokes', value: status === 'idle' ? '—' : keystrokes,    color: 'text-purple-600' },
+                                    { label: 'Time',       value: status === 'done' ? '0s' : timeLeft+'s', color: timeLeft<=10 && status==='running' ? 'text-red-500' : 'text-gray-700' },
+                                ].map(s => (
+                                    <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
+                                        <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Duration selector — only shown while idle */}
+                            {status === 'idle' && (
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-xs font-medium text-gray-500 mr-1">Duration:</span>
+                                    {DURATION_OPTIONS.map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-colors ${
+                                                selectedDuration === opt.value
+                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* ── WORD DISPLAY ── */}
+                            <div
+                                ref={wordsContainerRef}
+                                className="bg-gray-50 rounded-xl border border-gray-200 mb-4 select-none overflow-hidden relative"
+                                style={{ height: `${ROW_HEIGHT * 3}px` }}
+                            >
+                                {/* Fade overlays top/bottom for depth */}
+                                <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-gray-50 to-transparent z-10 pointer-events-none" />
+                                <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-gray-50 to-transparent z-10 pointer-events-none" />
+
+                                <div className="flex flex-wrap content-start gap-x-2.5 gap-y-1 px-4 pt-3 pb-3">
+                                    {wordList.map((word, wi) => {
+                                        const isPast    = wi < wordIndex;
+                                        const isCurrent = wi === wordIndex;
+                                        const result    = wordResults[wi];
+                                        // For current word: per-char colouring
+                                        const letters   = word.split('');
+
+                                        return (
+                                            <span
+                                                key={wi}
+                                                ref={el => { if (el) wordRefs.current[wi] = el; }}
+                                                className={`inline-flex items-center text-lg font-medium rounded-md px-1 py-0.5 transition-colors duration-75 ${
+                                                    isPast
+                                                        ? result?.correct
+                                                            ? 'text-gray-400'
+                                                            : 'text-red-400 border-b-2 border-red-400'
+                                                        : isCurrent
+                                                        ? 'text-gray-800'
+                                                        : 'text-gray-400'
+                                                }`}
+                                                style={isCurrent ? { position: 'relative' } : {}}
+                                            >
+                                                {isCurrent ? (
+                                                    <>
+                                                        {letters.map((ch, ci) => {
+                                                            const typed = typedInput[ci];
+                                                            let cls = 'text-gray-400';
+                                                            if (typed !== undefined) {
+                                                                cls = typed === ch ? 'text-gray-800' : 'text-red-500';
+                                                            }
+                                                            const isCaret = ci === typedInput.length;
+                                                            return (
+                                                                <span key={ci} style={{ position: 'relative' }}>
+                                                                    {isCaret && (
+                                                                        <span style={{
+                                                                            position: 'absolute',
+                                                                            left: '-1px',
+                                                                            top: '1px',
+                                                                            bottom: '1px',
+                                                                            width: '2px',
+                                                                            background: '#6366f1',
+                                                                            borderRadius: '1px',
+                                                                            opacity: caretTick ? 1 : 0,
+                                                                            transition: 'opacity 0.1s',
+                                                                        }} />
+                                                                    )}
+                                                                    <span className={cls}>{ch}</span>
+                                                                </span>
+                                                            );
+                                                        })}
+                                                        {/* Caret after last char */}
+                                                        {typedInput.length >= letters.length && (
+                                                            <span style={{
+                                                                display: 'inline-block',
+                                                                width: '2px',
+                                                                height: '1.1em',
+                                                                background: '#6366f1',
+                                                                borderRadius: '1px',
+                                                                verticalAlign: 'text-bottom',
+                                                                marginLeft: '1px',
+                                                                opacity: caretTick ? 1 : 0,
+                                                                transition: 'opacity 0.1s',
+                                                            }} />
+                                                        )}
+                                                        {/* Overflow chars typed beyond word length */}
+                                                        {typedInput.slice(letters.length).split('').map((ch, oi) => (
+                                                            <span key={'o'+oi} className="text-red-500">{ch}</span>
+                                                        ))}
+                                                    </>
+                                                ) : word}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* ── INPUT ── */}
+                            {status !== 'done' && (
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={typedInput}
+                                    onChange={handleInput}
+                                    onKeyDown={handleKeyDown}
+
+                                    disabled={status === 'done'}
+                                    placeholder={status === 'idle' ? 'Click here to start — timer begins on first keystroke' : ''}
+                                    className={`w-full px-4 py-3 text-base rounded-xl border-2 outline-none transition-colors font-medium ${
+                                        status === 'idle'
+                                            ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-pointer'
+                                            : 'border-indigo-400 bg-white text-gray-900 focus:border-indigo-500'
+                                    }`}
+                                />
+                            )}
+
+                            {/* ── RESULTS ── */}
+                            {status === 'done' && (
+                                <div className="animate-slide-in space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                            <p className="text-3xl font-bold text-green-700">{correctWords}</p>
+                                            <p className="text-sm text-green-600 mt-1">Correct Words ✅</p>
+                                        </div>
+                                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                                            <p className="text-3xl font-bold text-red-600">{wrongWords}</p>
+                                            <p className="text-sm text-red-500 mt-1">Wrong Words ❌</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
+                                        <p className="text-4xl font-bold text-indigo-700">{wpm} <span className="text-lg font-semibold">WPM</span></p>
+                                        <p className="text-sm text-indigo-500 mt-1">{accuracy}% accuracy · {keystrokes} keystrokes</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button onClick={handleRetry} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition">
+                                            🔁 Try Again
+                                        </button>
+                                        <button onClick={onClose} className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {status !== 'done' && (
+                                <p className="text-xs text-gray-400 text-center mt-3">
+                                    {status === 'idle' ? 'Timer starts when you begin typing' : `Type each word and press Space to advance · ${totalWords} words typed`}
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -1717,105 +2009,239 @@
         // ==================== STAGE 2: PRACTICE ====================
 
         function PracticeStage({ dialogue, onGoToStage }) {
-            const [currentBlankIndex, setCurrentBlankIndex] = useState(0);
-            const [userAnswers, setUserAnswers] = useState({});
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [selectedAnswers, setSelectedAnswers] = useState({});
+            const [correctCount, setCorrectCount] = useState(0);
+            const [incorrectCount, setIncorrectCount] = useState(0);
+            const [showSummary, setShowSummary] = useState(false);
 
             const normalizeVietnamese = (text) => text.toLowerCase().trim().replace(/\s+/g, ' ');
 
-            const handlePracticeAnswer = (blankId, selectedAnswer) => {
-                setUserAnswers(prev => ({ ...prev, [blankId]: selectedAnswer }));
-                setTimeout(() => {
-                    if (currentBlankIndex < dialogue.blanks.length - 1) {
-                        setCurrentBlankIndex(prev => prev + 1);
-                    }
-                }, 1500);
-            };
+            // Group blanks by dialogue line — each line with blanks = one question
+            const questions = React.useMemo(() => {
+                return dialogue.dialogue
+                    .map(line => {
+                        const blankNums = [];
+                        let m;
+                        const re = /\[BLANK(\d+)\]/g;
+                        while ((m = re.exec(line.text)) !== null) {
+                            blankNums.push(parseInt(m[1], 10));
+                        }
+                        if (blankNums.length === 0) return null;
+                        const blanks = blankNums.map(n => dialogue.blanks[n - 1]).filter(Boolean);
+                        return { line, blanks };
+                    })
+                    .filter(Boolean);
+            }, [dialogue]);
 
-            const currentBlank = dialogue.blanks[currentBlankIndex];
-            const userAnswer = userAnswers[currentBlank.id];
-            const hasAnswered = userAnswer !== undefined;
-            const isCorrect = hasAnswered && normalizeVietnamese(userAnswer) === normalizeVietnamese(currentBlank.answer);
-            const allPracticeComplete = currentBlankIndex === dialogue.blanks.length - 1 && hasAnswered;
+            const currentQuestion = questions[currentQuestionIndex];
+            const currentBlanks = currentQuestion ? currentQuestion.blanks : [];
 
-            // Find the line that contains this blank
-            const blankTag = `[BLANK${currentBlankIndex + 1}]`;
-            const speakerLine = dialogue.dialogue.find(l => l.text.includes(blankTag));
-            const speakerName = speakerLine ? speakerLine.speaker : null;
-            const gappedSentence = speakerLine
-                ? speakerLine.text.replace(/\[BLANK\d+\]/g, '___________')
-                : '';
+            // All blanks in this question answered?
+            const allAnswered = currentBlanks.length > 0 && currentBlanks.every(b => selectedAnswers[b.id] !== undefined);
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-            // Choices
-            const generateChoices = (correct) => {
-                const others = dialogue.blanks.filter(b => b.id !== currentBlank.id);
+            // Generate 3 distractor answers for a single blank (excluding its own correct answer)
+            const getDistractors = React.useCallback((blank, count) => {
+                const others = dialogue.blanks.filter(b => b.id !== blank.id);
                 const pool = [...others].sort(() => Math.random() - 0.5);
-                const distractors = [];
-                const seen = new Set([normalizeVietnamese(correct)]);
+                const result = [];
+                const seen = new Set([normalizeVietnamese(blank.answer)]);
                 for (const b of pool) {
-                    if (distractors.length >= 2) break;
+                    if (result.length >= count) break;
                     const norm = normalizeVietnamese(b.answer);
-                    if (!seen.has(norm)) { seen.add(norm); distractors.push(b.answer); }
+                    if (!seen.has(norm)) { seen.add(norm); result.push(b.answer); }
                 }
-                return [correct, ...distractors].sort(() => Math.random() - 0.5);
+                return result;
+            }, [dialogue]);
+
+            // Build 3 combined option objects for the current question.
+            // Each option is an array of { blankId, answer } — one entry per blank in the question.
+            // Option 0 is always the fully-correct combo; options 1 & 2 are wrong combos.
+            const combinedOptions = React.useMemo(() => {
+                if (!currentQuestion) return [];
+                const blanks = currentQuestion.blanks;
+                // Correct option: correct answer for every blank
+                const correctOption = blanks.map(b => ({ blankId: b.id, answer: b.answer }));
+                // For each wrong option: swap one blank's answer to a distractor
+                const wrongOptions = [];
+                for (let wi = 0; wi < 2; wi++) {
+                    const opt = blanks.map((b, bi) => {
+                        // Alternate which blank gets the wrong answer so options differ
+                        const swapBlank = blanks[(wi + bi) % blanks.length];
+                        const distractors = getDistractors(swapBlank, 3);
+                        const distractor = distractors[wi] || distractors[0] || b.answer + " (alt)";
+                        return { blankId: b.id, answer: bi === (wi % blanks.length) ? distractor : b.answer };
+                    });
+                    wrongOptions.push(opt);
+                }
+                return [correctOption, ...wrongOptions].sort(() => Math.random() - 0.5);
+            }, [currentQuestionIndex]);
+
+            // Which combined option index was selected (null = none yet)
+            const selectedOptionIndex = React.useMemo(() => {
+                if (!currentQuestion || !allAnswered) return null;
+                const firstBlankId = currentQuestion.blanks[0].id;
+                const firstAnswer = selectedAnswers[firstBlankId];
+                if (firstAnswer === undefined) return null;
+                return combinedOptions.findIndex(opt => opt[0].answer === firstAnswer);
+            }, [selectedAnswers, allAnswered]);
+
+            const handleSelectOption = (optionIndex) => {
+                if (allAnswered) return; // locked
+                const option = combinedOptions[optionIndex];
+                let newCorrect = 0, newIncorrect = 0;
+                const updates = {};
+                option.forEach(({ blankId, answer }) => {
+                    const blank = dialogue.blanks.find(b => b.id === blankId);
+                    const correct = normalizeVietnamese(answer) === normalizeVietnamese(blank.answer);
+                    updates[blankId] = answer;
+                    if (correct) newCorrect++; else newIncorrect++;
+                });
+                setSelectedAnswers(prev => ({ ...prev, ...updates }));
+                setCorrectCount(prev => prev + newCorrect);
+                setIncorrectCount(prev => prev + newIncorrect);
             };
 
-            const choices = React.useMemo(
-                () => generateChoices(currentBlank.answer),
-                [currentBlankIndex]
-            );
+            const handleNext = () => {
+                if (isLastQuestion) {
+                    setShowSummary(true);
+                } else {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                }
+            };
 
+            const handleRetry = () => {
+                setCurrentQuestionIndex(0);
+                setSelectedAnswers({});
+                setCorrectCount(0);
+                setIncorrectCount(0);
+                setShowSummary(false);
+            };
+
+            // Build sentence parts for rendering
+            const buildSentenceParts = (line) => {
+                return line.text.split(/(\[BLANK\d+\])/).filter(p => p !== '').map(part => {
+                    const match = part.match(/^\[BLANK(\d+)\]$/);
+                    if (match) {
+                        const bNum = parseInt(match[1], 10);
+                        const blank = dialogue.blanks[bNum - 1];
+                        const answer = blank ? selectedAnswers[blank.id] : undefined;
+                        const answered = answer !== undefined;
+                        const correct = answered && blank && normalizeVietnamese(answer) === normalizeVietnamese(blank.answer);
+                        return { type: 'blank', blank, answered, answer, correct };
+                    }
+                    return { type: 'text', value: part };
+                });
+            };
+
+            const totalBlanks = dialogue.blanks.length;
+            const answeredBlanks = Object.keys(selectedAnswers).length;
+            const percentScore = totalBlanks > 0 ? Math.round((correctCount / totalBlanks) * 100) : 0;
+
+            // ---- SUMMARY SCREEN ----
+            if (showSummary) {
+                return (
+                    <div>
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900">✏️ Stage 2: Practice</h3>
+                                    <p className="text-gray-600">Practice complete!</p>
+                                </div>
+                                <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">Step 2 of 5</div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6 animate-slide-in">
+                            <h4 className="text-2xl font-bold text-gray-900 mb-6 text-center">📊 Practice Summary</h4>
+                            <div className="flex justify-center mb-8">
+                                <div className="w-32 h-32 rounded-full flex items-center justify-center border-8" style={{ borderColor: percentScore >= 70 ? '#10b981' : percentScore >= 40 ? '#f59e0b' : '#ef4444' }}>
+                                    <span className="text-3xl font-bold text-gray-900">{percentScore}%</span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 mb-8">
+                                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-gray-900">{totalBlanks}</p>
+                                    <p className="text-sm text-gray-600 mt-1">Total Blanks</p>
+                                </div>
+                                <div className="bg-green-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-green-700">{correctCount}</p>
+                                    <p className="text-sm text-green-600 mt-1">Correct ✅</p>
+                                </div>
+                                <div className="bg-red-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-red-700">{incorrectCount}</p>
+                                    <p className="text-sm text-red-600 mt-1">Incorrect ❌</p>
+                                </div>
+                            </div>
+                            <div className={`p-4 rounded-xl border-2 mb-6 text-center ${percentScore >= 70 ? 'bg-green-50 border-green-300' : percentScore >= 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300'}`}>
+                                <p className={`font-bold text-lg ${percentScore >= 70 ? 'text-green-800' : percentScore >= 40 ? 'text-yellow-800' : 'text-red-800'}`}>
+                                    {percentScore >= 70 ? '🎉 Great job! You\'re ready for the test.' : percentScore >= 40 ? '👍 Good effort! Consider retrying to improve.' : '📚 Keep practicing! Try again to strengthen your skills.'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex justify-between">
+                            <button onClick={handleRetry} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+                                🔁 Retry Practice
+                            </button>
+                            <button onClick={() => onGoToStage('test')} className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
+                                Ready for the Test →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!currentQuestion) return null;
+            const sentenceParts = buildSentenceParts(currentQuestion.line);
+
+            // ---- QUESTION SCREEN ----
             return (
                 <div>
+                    {/* Header */}
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h3 className="text-2xl font-bold text-gray-900">✏️ Stage 2: Practice</h3>
                                 <p className="text-gray-600">Choose the correct Vietnamese phrase for each blank</p>
                             </div>
-                            <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">
-                                Step 2 of 5
-                            </div>
+                            <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold">Step 2 of 5</div>
                         </div>
                         <div className="flex items-center space-x-2">
                             <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div
                                     className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${((currentBlankIndex + (hasAnswered ? 1 : 0)) / dialogue.blanks.length) * 100}%` }}
+                                    style={{ width: `${((currentQuestionIndex + (allAnswered ? 1 : 0)) / questions.length) * 100}%` }}
                                 />
                             </div>
-                            <span className="text-sm font-medium text-gray-600">
-                                {currentBlankIndex + 1} / {dialogue.blanks.length}
-                            </span>
+                            <span className="text-sm font-medium text-gray-600">{currentQuestionIndex + 1} / {questions.length}</span>
                         </div>
                     </div>
 
+                    {/* Question card */}
                     <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
-                        <div className="flex items-center space-x-2 mb-5">
-                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-                                {currentBlank.category}
-                            </span>
-                            {speakerName && (
-                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                    {speakerName}
-                                </span>
-                            )}
+                        {/* Tags */}
+                        <div className="flex items-center flex-wrap gap-2 mb-5">
+                            {currentBlanks.map((b, i) => (
+                                <span key={i} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">{b.category}</span>
+                            ))}
+                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">{currentQuestion.line.speaker}</span>
                         </div>
 
-                        <p className="text-gray-500 text-sm font-medium mb-3">Fill in the blank:</p>
+                        {/* Sentence display */}
+                        <p className="text-gray-500 text-sm font-medium mb-3">{currentBlanks.length > 1 ? 'Fill in the blanks:' : 'Fill in the blank:'}</p>
                         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-xl px-6 py-5 mb-6">
                             <p className="text-xl leading-relaxed text-gray-800 font-medium">
-                                {gappedSentence.split('___________').map((part, i, arr) => (
+                                {sentenceParts.map((part, i) => (
                                     <React.Fragment key={i}>
-                                        {part}
-                                        {i < arr.length - 1 && (
+                                        {part.type === 'text' ? part.value : (
                                             <span className={`inline-block mx-1 px-3 py-0.5 rounded font-bold text-xl border-b-2 min-w-[80px] text-center transition-colors ${
-                                                hasAnswered
-                                                    ? isCorrect
+                                                part.answered
+                                                    ? part.correct
                                                         ? 'text-green-700 border-green-500 bg-green-100'
                                                         : 'text-red-700 border-red-500 bg-red-100'
                                                     : 'text-indigo-400 border-indigo-400 bg-white'
                                             }`}>
-                                                {hasAnswered ? userAnswer : '?'}
+                                                {part.answered ? part.answer : '?'}
                                             </span>
                                         )}
                                     </React.Fragment>
@@ -1823,14 +2249,18 @@
                             </p>
                         </div>
 
+                        {/* Combined options — 3 choices, each containing one answer per blank */}
                         <div className="space-y-3">
-                            {choices.map((choice, idx) => {
-                                const isSelected = userAnswer === choice;
-                                const isCorrectChoice = normalizeVietnamese(choice) === normalizeVietnamese(currentBlank.answer);
+                            {combinedOptions.map((option, optIdx) => {
+                                const isSelected = selectedOptionIndex === optIdx;
+                                const isCorrectOption = option.every(({ blankId, answer }) => {
+                                    const blank = dialogue.blanks.find(b => b.id === blankId);
+                                    return normalizeVietnamese(answer) === normalizeVietnamese(blank.answer);
+                                });
                                 let cls = 'w-full p-4 rounded-xl text-left transition-all border-2 ';
-                                if (!hasAnswered) {
+                                if (!allAnswered) {
                                     cls += 'bg-gray-50 border-gray-300 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer';
-                                } else if (isCorrectChoice) {
+                                } else if (isCorrectOption) {
                                     cls += 'bg-green-100 border-green-500 cursor-default';
                                 } else if (isSelected) {
                                     cls += 'bg-red-100 border-red-500 cursor-default';
@@ -1838,76 +2268,64 @@
                                     cls += 'bg-gray-100 border-gray-200 opacity-50 cursor-default';
                                 }
                                 return (
-                                    <button
-                                        key={idx}
-                                        onClick={() => !hasAnswered && handlePracticeAnswer(currentBlank.id, choice)}
-                                        disabled={hasAnswered}
-                                        className={cls}
-                                    >
+                                    <button key={optIdx} onClick={() => handleSelectOption(optIdx)} disabled={allAnswered} className={cls}>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-3">
-                                                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                                                    !hasAnswered ? 'bg-indigo-100 text-indigo-700' :
-                                                    isCorrectChoice ? 'bg-green-500 text-white' :
-                                                    isSelected ? 'bg-red-500 text-white' :
-                                                    'bg-gray-300 text-gray-500'
-                                                }`}>
-                                                    {String.fromCharCode(65 + idx)}
+                                                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 flex-shrink-0 ${!allAnswered ? 'bg-indigo-100 text-indigo-700' : isCorrectOption ? 'bg-green-500 text-white' : isSelected ? 'bg-red-500 text-white' : 'bg-gray-300 text-gray-500'}`}>
+                                                    {String.fromCharCode(65 + optIdx)}
                                                 </span>
-                                                <span className="text-lg font-semibold text-gray-900">{choice}</span>
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    {option.map(({ blankId, answer }, ai) => (
+                                                        <React.Fragment key={blankId}>
+                                                            {ai > 0 && <span className="text-gray-400 font-bold">+</span>}
+                                                            <span className="text-lg font-semibold text-gray-900">{answer}</span>
+                                                        </React.Fragment>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            {hasAnswered && isCorrectChoice && <span className="text-2xl">✅</span>}
-                                            {hasAnswered && isSelected && !isCorrectChoice && <span className="text-2xl">❌</span>}
+                                            {allAnswered && isCorrectOption && <span className="text-2xl">✅</span>}
+                                            {allAnswered && isSelected && !isCorrectOption && <span className="text-2xl">❌</span>}
                                         </div>
                                     </button>
                                 );
                             })}
                         </div>
 
-                        {hasAnswered && (
+                        {/* Feedback after answering */}
+                        {allAnswered && (
                             <div className={`mt-5 p-4 rounded-xl border-2 animate-slide-in ${
-                                isCorrect ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'
+                                currentBlanks.every(b => normalizeVietnamese(selectedAnswers[b.id]) === normalizeVietnamese(b.answer))
+                                    ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'
                             }`}>
-                                <p className={`font-bold mb-1 ${isCorrect ? 'text-green-800' : 'text-orange-800'}`}>
-                                    {isCorrect ? '🎉 Correct!' : `❌ Answer: ${currentBlank.answer}`}
-                                </p>
-                                <p className="text-gray-700 text-sm">{currentBlank.notes}</p>
+                                {currentBlanks.every(b => normalizeVietnamese(selectedAnswers[b.id]) === normalizeVietnamese(b.answer)) ? (
+                                    <p className="font-bold text-green-800 mb-2">🎉 Correct!</p>
+                                ) : (
+                                    <p className="font-bold text-orange-800 mb-2">
+                                        ❌ Correct: {currentBlanks.map(b => b.answer).join(' + ')}
+                                    </p>
+                                )}
+                                {currentBlanks.map(b => (
+                                    <p key={b.id} className="text-gray-700 text-sm">{b.notes}</p>
+                                ))}
                             </div>
                         )}
                     </div>
 
-                    <div className="flex justify-between">
-                        {currentBlankIndex > 0 && (
-                            <button
-                                onClick={() => setCurrentBlankIndex(prev => prev - 1)}
-                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                            >
-                                ← Previous
-                            </button>
-                        )}
-                        <div className="flex-1" />
-                        {hasAnswered && !allPracticeComplete && (
-                            <button
-                                onClick={() => setCurrentBlankIndex(prev => prev + 1)}
-                                className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                            >
-                                Next →
-                            </button>
-                        )}
-                        {allPracticeComplete && (
-                            <button
-                                onClick={() => onGoToStage('test')}
-                                className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                            >
-                                Ready for the Test →
-                            </button>
-                        )}
+                    {/* Next button */}
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleNext}
+                            disabled={!allAnswered}
+                            className={`px-6 py-3 rounded-lg font-semibold transition ${allAnswered ? 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                        >
+                            {isLastQuestion ? 'Finish →' : 'Next →'}
+                        </button>
                     </div>
                 </div>
             );
         }
 
-        // ==================== STAGE 3: TEST ====================
+                // ==================== STAGE 3: TEST ====================
 
         function TestStage({ scenario, dialogue, onComplete, onGoToStage }) {
             const [userAnswers, setUserAnswers] = useState({});
@@ -2360,7 +2778,7 @@
         function ListeningStage({ dialogue, onBack, onRestart }) {
             const { useState, useEffect, useRef, useMemo } = React;
 
-            // Reuse same sentence pool as RebuildStage — fill in blank answers so all words are present
+            // Build sentence list from dialogue, filling in blank answers
             const sentences = useMemo(() => {
                 const answerMap = {};
                 (dialogue.blanks || []).forEach(b => { answerMap[b.id] = b.answer; });
@@ -2378,48 +2796,31 @@
             const [currentIndex, setCurrentIndex] = useState(0);
             const [hasPlayed, setHasPlayed] = useState(false);
             const [isPlaying, setIsPlaying] = useState(false);
-            const [selectedWords, setSelectedWords] = useState([]);
-            const [availableWords, setAvailableWords] = useState([]);
+            const [typedAnswer, setTypedAnswer] = useState('');
             const [result, setResult] = useState(null); // null | 'correct' | 'incorrect'
-            const [completed, setCompleted] = useState(0);
+            const [correctCount, setCorrectCount] = useState(0);
+            const [incorrectCount, setIncorrectCount] = useState(0);
+            const [showSummary, setShowSummary] = useState(false);
             const [ttsSupported, setTtsSupported] = useState(true);
             const utteranceRef = useRef(null);
+            const inputRef = useRef(null);
 
-            const shuffleArray = (arr) => {
-                const a = [...arr];
-                for (let i = a.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [a[i], a[j]] = [a[j], a[i]];
-                }
-                return a;
-            };
+            const isLastSentence = currentIndex === sentences.length - 1;
+            const current = sentences[currentIndex];
 
-            const loadSentence = (index) => {
-                const sentence = sentences[index];
-                if (!sentence) return;
-                const words = sentence.text.split(' ').filter(w => w.length > 0);
-                const tagged = words.map((w, i) => ({ id: `lw${i}`, word: w }));
-                setAvailableWords(shuffleArray(tagged));
-                setSelectedWords([]);
+            useEffect(() => {
+                if (!window.speechSynthesis) setTtsSupported(false);
+                return () => { if (window.speechSynthesis) window.speechSynthesis.cancel(); };
+            }, []);
+
+            // Reset state when moving to new sentence
+            useEffect(() => {
+                setTypedAnswer('');
                 setResult(null);
                 setHasPlayed(false);
                 setIsPlaying(false);
-                // Cancel any ongoing speech
                 if (window.speechSynthesis) window.speechSynthesis.cancel();
-            };
-
-            useEffect(() => {
-                if (!window.speechSynthesis) {
-                    setTtsSupported(false);
-                }
-                loadSentence(0);
-                return () => {
-                    if (window.speechSynthesis) window.speechSynthesis.cancel();
-                };
-            }, []);
-
-            useEffect(() => {
-                loadSentence(currentIndex);
+                setTimeout(() => inputRef.current && inputRef.current.focus(), 50);
             }, [currentIndex]);
 
             const playAudio = () => {
@@ -2430,75 +2831,147 @@
                 utterance.lang = 'vi-VN';
                 utterance.rate = 0.85;
                 utterance.pitch = 1;
-
-                // Try to find a Vietnamese voice
                 const voices = window.speechSynthesis.getVoices();
                 const viVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.startsWith('vi'));
                 if (viVoice) utterance.voice = viVoice;
-
                 utterance.onstart = () => setIsPlaying(true);
-                utterance.onend = () => {
-                    setIsPlaying(false);
-                    setHasPlayed(true);
-                };
-                utterance.onerror = () => {
-                    setIsPlaying(false);
-                    setHasPlayed(true);
-                };
+                utterance.onend = () => { setIsPlaying(false); setHasPlayed(true); };
+                utterance.onerror = () => { setIsPlaying(false); setHasPlayed(true); };
                 utteranceRef.current = utterance;
                 window.speechSynthesis.speak(utterance);
             };
 
-            // Voices may load async — retry after a short delay if needed
             const handlePlayClick = () => {
                 if (window.speechSynthesis.getVoices().length === 0) {
                     window.speechSynthesis.onvoiceschanged = () => {
                         window.speechSynthesis.onvoiceschanged = null;
                         playAudio();
                     };
-                    // Fallback: play anyway after 300ms even without voice list
                     setTimeout(() => playAudio(), 300);
                 } else {
                     playAudio();
                 }
             };
 
-            const handlePickWord = (item) => {
-                if (result !== null) return;
-                setAvailableWords(prev => prev.filter(w => w.id !== item.id));
-                setSelectedWords(prev => [...prev, item]);
-            };
+            const normalize = (s) => s.trim().toLowerCase().replace(/[\p{P}\p{S}]/gu, '').replace(/\s+/g, ' ');
 
-            const handleRemoveWord = (item) => {
-                if (result !== null) return;
-                setSelectedWords(prev => prev.filter(w => w.id !== item.id));
-                setAvailableWords(prev => [...prev, item]);
+            // Diff: return array of { char, type: 'match'|'wrong'|'missing' } for highlighting
+            const diffChars = (typed, correct) => {
+                const t = typed.trim();
+                const c = correct.trim();
+                const result = [];
+                const maxLen = Math.max(t.length, c.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (i >= t.length) {
+                        result.push({ char: c[i], type: 'missing' });
+                    } else if (i >= c.length) {
+                        result.push({ char: t[i], type: 'extra' });
+                    } else if (t[i].toLowerCase() === c[i].toLowerCase()) {
+                        result.push({ char: c[i], type: 'match' });
+                    } else {
+                        result.push({ char: c[i], type: 'wrong' });
+                    }
+                }
+                return result;
             };
 
             const handleCheck = () => {
-                const answer = selectedWords.map(w => w.word).join(' ');
-                const correct = sentences[currentIndex].text;
-                if (answer === correct) {
-                    setResult('correct');
-                    setCompleted(prev => prev + 1);
-                } else {
-                    setResult('incorrect');
-                }
+                if (!typedAnswer.trim()) return;
+                const correct = normalize(typedAnswer) === normalize(current.text);
+                setResult(correct ? 'correct' : 'incorrect');
+                if (correct) setCorrectCount(prev => prev + 1);
+                else setIncorrectCount(prev => prev + 1);
             };
 
-            const handleTryAgain = () => {
-                loadSentence(currentIndex);
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && result === null && typedAnswer.trim()) handleCheck();
             };
 
             const handleNext = () => {
-                if (currentIndex < sentences.length - 1) {
+                if (isLastSentence) {
+                    setShowSummary(true);
+                } else {
                     setCurrentIndex(prev => prev + 1);
                 }
             };
 
-            const isLastSentence = currentIndex === sentences.length - 1;
-            const allDone = isLastSentence && result === 'correct';
-            const current = sentences[currentIndex];
+            const handleRetry = () => {
+                setCurrentIndex(0);
+                setTypedAnswer('');
+                setResult(null);
+                setCorrectCount(0);
+                setIncorrectCount(0);
+                setShowSummary(false);
+                setHasPlayed(false);
+            };
+
+            const totalSentences = sentences.length;
+            const percentScore = totalSentences > 0 ? Math.round((correctCount / totalSentences) * 100) : 0;
+
+            // ---- SUMMARY SCREEN ----
+            if (showSummary) {
+                return (
+                    <div>
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900">🎧 Stage 5: Listening Mode</h3>
+                                    <p className="text-gray-600">Listening practice complete!</p>
+                                </div>
+                                <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">Final Step</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6 animate-slide-in">
+                            <h4 className="text-2xl font-bold text-gray-900 mb-6 text-center">📊 Listening Summary</h4>
+
+                            <div className="flex justify-center mb-8">
+                                <div className="w-32 h-32 rounded-full flex items-center justify-center border-8" style={{ borderColor: percentScore >= 70 ? '#10b981' : percentScore >= 40 ? '#f59e0b' : '#ef4444' }}>
+                                    <span className="text-3xl font-bold text-gray-900">{percentScore}%</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4 mb-8">
+                                <div className="bg-gray-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-gray-900">{totalSentences}</p>
+                                    <p className="text-sm text-gray-600 mt-1">Total Sentences</p>
+                                </div>
+                                <div className="bg-green-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-green-700">{correctCount}</p>
+                                    <p className="text-sm text-green-600 mt-1">Correct ✅</p>
+                                </div>
+                                <div className="bg-red-50 rounded-xl p-4 text-center">
+                                    <p className="text-3xl font-bold text-red-700">{incorrectCount}</p>
+                                    <p className="text-sm text-red-600 mt-1">Incorrect ❌</p>
+                                </div>
+                            </div>
+
+                            <div className={`p-4 rounded-xl border-2 text-center ${percentScore >= 70 ? 'bg-green-50 border-green-300' : percentScore >= 40 ? 'bg-yellow-50 border-yellow-300' : 'bg-red-50 border-red-300'}`}>
+                                <p className={`font-bold text-lg ${percentScore >= 70 ? 'text-green-800' : percentScore >= 40 ? 'text-yellow-800' : 'text-red-800'}`}>
+                                    {percentScore >= 70 ? "🎉 Excellent listening! You've mastered these sentences." : percentScore >= 40 ? "👍 Good effort! Try again to sharpen your ear." : "📚 Keep listening! Replay and practice more."}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t pt-6">
+                            <button onClick={onBack} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
+                                ← Back
+                            </button>
+                            <div className="flex space-x-3">
+                                <button onClick={handleRetry} className="px-6 py-3 bg-purple-100 text-purple-700 rounded-lg font-semibold hover:bg-purple-200 transition">
+                                    🔁 Retry Listening
+                                </button>
+                                <button onClick={onRestart} className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
+                                    Start Over 🔄
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ---- QUESTION SCREEN ----
+            const diffResult = result === 'incorrect' ? diffChars(typedAnswer, current.text) : null;
 
             return (
                 <div>
@@ -2507,29 +2980,25 @@
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <h3 className="text-2xl font-bold text-gray-900">🎧 Stage 5: Listening Mode</h3>
-                                <p className="text-gray-600">Listen to the sentence, then rebuild it from memory</p>
+                                <p className="text-gray-600">Listen to the sentence, then type exactly what you hear</p>
                             </div>
-                            <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
-                                Final Step
-                            </div>
+                            <div className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">Final Step</div>
                         </div>
                         <div className="flex items-center space-x-3">
                             <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div
                                     className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${((currentIndex + (result === 'correct' ? 1 : 0)) / sentences.length) * 100}%` }}
+                                    style={{ width: `${((currentIndex + (result !== null ? 1 : 0)) / sentences.length) * 100}%` }}
                                 />
                             </div>
-                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
-                                {currentIndex + 1} / {sentences.length}
-                            </span>
+                            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">{currentIndex + 1} / {sentences.length}</span>
                         </div>
                     </div>
 
                     {!ttsSupported && (
                         <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6 flex items-center space-x-3">
                             <span className="text-2xl">⚠️</span>
-                            <p className="text-yellow-800 text-sm">Your browser doesn't support Text-to-Speech. The sentence is shown below so you can still practice rebuilding.</p>
+                            <p className="text-yellow-800 text-sm">Your browser doesn't support Text-to-Speech. The sentence is shown below so you can still practice.</p>
                         </div>
                     )}
 
@@ -2537,9 +3006,7 @@
                     <div className="bg-white rounded-xl shadow-xl border-2 border-gray-200 p-8 mb-6">
                         {/* Speaker badge */}
                         <div className="flex items-center justify-between mb-6">
-                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-                                {current.speaker}
-                            </span>
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">{current.speaker}</span>
                             <span className="text-xs text-gray-400 italic">Sentence {currentIndex + 1} of {sentences.length}</span>
                         </div>
 
@@ -2549,9 +3016,7 @@
                                 onClick={handlePlayClick}
                                 disabled={isPlaying}
                                 className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl shadow-lg transition-all mb-4 ${
-                                    isPlaying
-                                        ? 'bg-purple-300 cursor-not-allowed scale-95'
-                                        : 'bg-purple-600 hover:bg-purple-700 hover:scale-110 active:scale-95 text-white'
+                                    isPlaying ? 'bg-purple-300 cursor-not-allowed scale-95' : 'bg-purple-600 hover:bg-purple-700 hover:scale-110 active:scale-95 text-white'
                                 }`}
                                 title="Play audio"
                             >
@@ -2562,143 +3027,105 @@
                             </p>
                             <p className="text-purple-400 text-xs">Vietnamese (vi-VN) · click to replay anytime</p>
 
-                            {/* Fallback: show sentence if TTS unsupported */}
+                            {/* Fallback: show sentence text if TTS unsupported */}
                             {!ttsSupported && (
                                 <p className="mt-4 text-gray-800 text-lg font-medium text-center px-4">{current.text}</p>
                             )}
+
+                            {/* Reveal sentence after answering */}
+                            {result !== null && ttsSupported && (
+                                <p className="mt-4 text-gray-700 text-base font-medium text-center px-4 opacity-80">{current.text}</p>
+                            )}
                         </div>
 
-                        {/* Word puzzle — always shown so user can start building while listening */}
+                        {/* Typed input */}
                         <div className="mb-6">
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Your sentence</p>
-                            <div
-                                className={`min-h-[60px] flex flex-wrap gap-2 p-4 rounded-xl border-2 transition-colors ${
-                                    result === 'correct' ? 'border-green-400 bg-green-50' :
-                                    result === 'incorrect' ? 'border-red-400 bg-red-50' :
-                                    'border-dashed border-gray-300 bg-gray-50'
+                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Type what you hear</p>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={typedAnswer}
+                                onChange={e => result === null && setTypedAnswer(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                disabled={result !== null}
+                                placeholder="Type the Vietnamese sentence here…"
+                                className={`w-full px-4 py-3 text-lg rounded-xl border-2 outline-none transition-colors font-medium ${
+                                    result === 'correct'
+                                        ? 'border-green-400 bg-green-50 text-green-900'
+                                        : result === 'incorrect'
+                                        ? 'border-red-400 bg-red-50 text-red-900'
+                                        : 'border-gray-300 bg-white text-gray-900 focus:border-purple-400'
                                 }`}
-                            >
-                                {selectedWords.length === 0 && (
-                                    <span className="text-gray-400 text-sm italic self-center">Click words below to build the sentence…</span>
-                                )}
-                                {selectedWords.map(item => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => handleRemoveWord(item)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                            result === 'correct' ? 'bg-green-200 text-green-900 cursor-default' :
-                                            result === 'incorrect' ? 'bg-red-200 text-red-900 cursor-default' :
-                                            'bg-purple-600 text-white hover:bg-red-500 hover:scale-95'
-                                        }`}
-                                        title={result === null ? 'Click to remove' : ''}
-                                    >
-                                        {item.word}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Word bank</p>
-                            <div className="flex flex-wrap gap-2 min-h-[44px]">
-                                {availableWords.map(item => (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => handlePickWord(item)}
-                                        disabled={result !== null}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                                            result !== null
-                                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-default'
-                                                : 'bg-white border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-500 hover:scale-105 active:scale-95'
-                                        }`}
-                                    >
-                                        {item.word}
-                                    </button>
-                                ))}
-                            </div>
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Press Enter or click Check to submit</p>
                         </div>
 
                         {/* Result feedback */}
                         {result === 'correct' && (
                             <div className="animate-slide-in">
-                                <div className="flex items-center space-x-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl mb-3">
+                                <div className="flex items-center space-x-3 p-4 bg-green-50 border-2 border-green-300 rounded-xl">
                                     <span className="text-2xl">✅</span>
                                     <div>
                                         <p className="font-bold text-green-800">Correct!</p>
-                                        <p className="text-green-700 text-sm">You rebuilt the sentence perfectly from audio.</p>
+                                        <p className="text-green-700 text-sm">You typed the sentence accurately.</p>
                                     </div>
-                                </div>
-                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                    <p className="text-xs text-gray-500 mb-1">Full sentence:</p>
-                                    <p className="text-gray-800 font-medium">{current.text}</p>
                                 </div>
                             </div>
                         )}
+
                         {result === 'incorrect' && (
-                            <div className="flex items-center space-x-3 p-4 bg-red-50 border-2 border-red-300 rounded-xl animate-slide-in">
-                                <span className="text-2xl">❌</span>
-                                <div>
-                                    <p className="font-bold text-red-800">Try again!</p>
-                                    <p className="text-red-700 text-sm">Listen again and rearrange the words. You can replay as many times as you need!</p>
+                            <div className="animate-slide-in space-y-3">
+                                <div className="flex items-center space-x-3 p-4 bg-red-50 border-2 border-red-300 rounded-xl">
+                                    <span className="text-2xl">❌</span>
+                                    <div>
+                                        <p className="font-bold text-red-800">Not quite right.</p>
+                                        <p className="text-red-700 text-sm">See the correct sentence below with differences highlighted.</p>
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Correct sentence</p>
+                                    <p className="text-base font-medium leading-relaxed">
+                                        {diffResult.map((item, i) => (
+                                            <span key={i} className={
+                                                item.type === 'match' ? 'text-gray-800' :
+                                                item.type === 'wrong' ? 'bg-orange-200 text-orange-900 rounded px-0.5' :
+                                                item.type === 'missing' ? 'bg-red-200 text-red-900 rounded px-0.5' :
+                                                'bg-gray-200 text-gray-500 line-through rounded px-0.5'
+                                            }>{item.char}</span>
+                                        ))}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-2">
+                                        <span className="inline-block w-3 h-3 bg-orange-200 rounded mr-1"></span>wrong char &nbsp;
+                                        <span className="inline-block w-3 h-3 bg-red-200 rounded mr-1"></span>missing
+                                    </p>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* All done banner */}
-                    {allDone && (
-                        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-8 text-white text-center mb-6 animate-slide-in">
-                            <div className="text-5xl mb-3">🏆</div>
-                            <h4 className="text-2xl font-bold mb-2">All 5 stages complete!</h4>
-                            <p className="text-purple-100 mb-1">Outstanding work — you've finished Listening Mode.</p>
-                            <p className="text-purple-200">Listening score: {completed} / {sentences.length} sentences</p>
-                        </div>
-                    )}
-
                     {/* Action buttons */}
                     <div className="flex items-center justify-between border-t pt-6">
-                        <button
-                            onClick={onBack}
-                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                        >
+                        <button onClick={onBack} className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition">
                             ← Back to Rebuild
                         </button>
                         <div className="flex space-x-3">
-                            {result === 'incorrect' && (
+                            {result === null && (
                                 <button
-                                    onClick={handleTryAgain}
-                                    className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition"
+                                    onClick={handleCheck}
+                                    disabled={!typedAnswer.trim()}
+                                    className={`px-8 py-3 rounded-lg font-semibold transition ${
+                                        typedAnswer.trim() ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
                                 >
-                                    Reset Words
+                                    Check ✓
                                 </button>
                             )}
-                            {result === 'correct' && !isLastSentence && (
+                            {result !== null && (
                                 <button
                                     onClick={handleNext}
                                     className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
                                 >
-                                    Next Sentence →
-                                </button>
-                            )}
-                            {allDone && (
-                                <button
-                                    onClick={onRestart}
-                                    className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
-                                >
-                                    Start Over 🔄
-                                </button>
-                            )}
-                            {result === null && (
-                                <button
-                                    onClick={handleCheck}
-                                    disabled={selectedWords.length === 0}
-                                    className={`px-8 py-3 rounded-lg font-semibold transition ${
-                                        selectedWords.length > 0
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    }`}
-                                >
-                                    Check ✓
+                                    {isLastSentence ? 'See Results →' : 'Next Sentence →'}
                                 </button>
                             )}
                         </div>
